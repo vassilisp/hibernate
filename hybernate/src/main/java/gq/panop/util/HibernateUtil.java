@@ -1,6 +1,11 @@
 package gq.panop.util;
 
+import java.util.List;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
@@ -30,4 +35,25 @@ public class HibernateUtil {
     	if (sessionFactory == null) createSessionFactory();
     	return sessionFactory;
     }
+    
+	public static <T> List<T> performSimpleQuery(Query query){
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Transaction tx = null;
+		
+		List<T> result = null;
+		
+		try{
+			tx = session.beginTransaction();
+			result = query.list();
+		}catch (Throwable ex){
+			if (tx!=null) tx.rollback();
+			ex.printStackTrace();
+		}finally {
+			session.flush();
+			session.close();
+		}
+		
+		return result;
+		
+	}
 }

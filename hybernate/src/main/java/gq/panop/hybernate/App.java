@@ -41,7 +41,7 @@ public class App
     	System.out.println("slow took: " + Long.toString(endtime-starttime));
     	
     	starttime = System.nanoTime();
-    	List<String> transactionIds = dao.getTransactionIds("ancsa");
+    	List<String> transactionIds = dao.getTransactionIds2("ancsa");
     	for (String transactionId : transactionIds){
     		System.out.println(transactionId);
     	}
