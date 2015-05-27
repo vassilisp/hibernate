@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+    <class name="gq.panop.hybernate.model.AuditLog" table="AuditLog">
+      <id name="transactionId" > <generator class="native"/></id>
+      <property name="timestamp"/>
+      <property name="userId" type="string"/>
+      <!-- <property name="transactionId" column="transactionId" type="String"/> -->
+      <property name="clientId" column="clientId" type="string"/>
+   </class>
+</hibernate-mapping>
