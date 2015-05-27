@@ -6,20 +6,18 @@ import gq.panop.util.HibernateUtil;
 import java.util.List;
 
 import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 public class AccessLogDao {
 
-	public List<AccessLog> getAccessLog(String transactionId){
-		List<AccessLog> accessLog = null;
+	public AccessLog getAccessLog(String transactionId){
+		AccessLog accessLog = null;
 		
 		String queryString = "From AccessLog where transactionId = :transactionId";
 		
     	Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
     	query.setString("transactionId", transactionId);
     	
-    	accessLog = HibernateUtil.performSimpleQuery(query);
+    	accessLog = (AccessLog) HibernateUtil.performUniqueQuery(query);
 		return accessLog ;
 	}
 	
@@ -37,7 +35,7 @@ public class AccessLogDao {
 	
 	public List<AccessLog> getAccessLogs(String userId_fromAuditLog){
 		
-		String queryString = "FROM AccessLog WHERE transactionId IN ( FROM AuditLog WHERE userId = :userId )";
+		String queryString = "FROM AccessLog WHERE transactionId IN ( SELECT transactionId FROM AuditLog WHERE userId = :userId )";
 		Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 		query.setString("userId", userId_fromAuditLog);
 		

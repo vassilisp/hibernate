@@ -56,4 +56,24 @@ public class HibernateUtil {
 		return result;
 		
 	}
+	public static Object performUniqueQuery(Query query){
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Transaction tx = null;
+		
+		Object result = null;
+		
+		try{
+			tx = session.beginTransaction();
+			result = query.uniqueResult();
+		}catch (Throwable ex){
+			if (tx!=null) tx.rollback();
+			ex.printStackTrace();
+		}finally {
+			session.flush();
+			session.close();
+		}
+		
+		return result;
+		
+	}
 }

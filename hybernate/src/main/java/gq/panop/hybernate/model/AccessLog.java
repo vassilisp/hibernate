@@ -2,7 +2,7 @@ package gq.panop.hybernate.model;
 
 import java.math.BigInteger;
 
-public class AccessLog {
+public class AccessLog{
 
 	private String clientIP;
 	private String requestedResource;
@@ -203,4 +203,16 @@ public class AccessLog {
 	}
 	
 	
+	@Override
+	public String toString(){
+		return "[ clientIP: " + clientIP + ", requestedResource:" + requestedResource + ", serverName: " + serverName 
+				+ ",  referer: " + referer + ", userAgent:" + userAgent + ", transactionId:" + transactionId 
+				+ ", requestDate:" + requestDate + ", requestDate:" + requestDate + ", statusCode:" + statusCode
+				+ ", responseSize:" + responseSize+ ", contentLength:" + contentLength+ ", processTimeInSec:" + processTimeInSec+ ", remoteLogname:" + remoteLogname
+				+ ", remoteUser:" + remoteUser+ " ]";
+	}
+	
+	public String toBetterString(){
+		return "";
+	}	
 }
