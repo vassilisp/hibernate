@@ -18,5 +18,6 @@
       <property name="processTimeInSec"/>
       <property name="remoteLogname"/>
       <property name="remoteUser"/>
+      <one-to-one name="auditLog" class="gq.panop.hybernate.model.AuditLog" constrained="true"></one-to-one> 
    </class>
 </hibernate-mapping>

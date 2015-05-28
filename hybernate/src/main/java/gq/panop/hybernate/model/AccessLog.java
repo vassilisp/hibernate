@@ -18,6 +18,8 @@ public class AccessLog{
 	private String remoteLogname;
 	private String remoteUser;
 	
+	private AuditLog auditLog;
+	
 	public AccessLog(){}
 
 	/**
@@ -203,6 +205,21 @@ public class AccessLog{
 	}
 	
 	
+	
+	/**
+	 * @return the auditLog
+	 */
+	public AuditLog getAuditLog() {
+		return auditLog;
+	}
+
+	/**
+	 * @param auditLog the auditLog to set
+	 */
+	public void setAuditLog(AuditLog auditLog) {
+		this.auditLog = auditLog;
+	}
+
 	@Override
 	public String toString(){
 		return "[ clientIP: " + clientIP + ", requestedResource:" + requestedResource + ", serverName: " + serverName 

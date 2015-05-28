@@ -2,7 +2,9 @@ package gq.panop.hybernate;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import gq.panop.hybernate.dao.AccessLogDao;
 import gq.panop.hybernate.dao.AuditLogDao;
@@ -25,9 +27,9 @@ public class App
         long starttime;
         long endtime;
 
-        String userId = "tom";
+        String userId = "mcico";
         
-        PerformanceUtil performance = new PerformanceUtil();
+        PerformanceUtil performance = new PerformanceUtil("ms");
     	AuditLogDao dao = new AuditLogDao();
         /*
 
@@ -56,6 +58,9 @@ public class App
     	System.out.println("fast took: " + Long.toString(endtime-starttime));
     	
     	
+    	//Create a keyboard scanner
+    	//TODO
+    	
     	AccessLogDao accessLogDao = new AccessLogDao();
     	
     	//Retrieve a transactionId by providing a transactionId
@@ -69,6 +74,7 @@ public class App
     	//Retrieving all accessLogs by providing a list of transactionIds
     	performance.Tick();
     	List<AccessLog> accessLogs = accessLogDao.getAccessLogs(transactionIds);
+    	if(accessLogs.isEmpty()) System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-- result is empty");
     	for (AccessLog accLog : accessLogs){
     		System.out.println(accLog.toString());
     	}
@@ -78,12 +84,13 @@ public class App
     	//Retrieving all accessLogs by providing a userId (all done by MySQL
     	performance.Tick();
     	List<AccessLog> accessLogsbyUser = accessLogDao.getAccessLogs(userId);
-    	for (AccessLog accLog : accessLogsbyUser){
+    	for (AccessLog accLog: accessLogsbyUser){
+
     		System.out.println(accLog.toString());
     	}
     	performance.Tock("Retrieving all accessLogs by providing a userId (all done by MySQL)");
 
-    	
+    	System.out.println("half half length result size : " + accessLogsbyUser.size() + "  , full length result size :  " + accessLogs.size());
     	
     	
     	Comparator accessLogCompare = new Comparator(){

@@ -10,5 +10,6 @@
       <property name="userId" type="string"/>
       <!-- <property name="transactionId" column="transactionId" type="String"/> -->
       <property name="clientId" column="clientId" type="string"/>
+      <one-to-one name="accessLog" class="gq.panop.hybernate.model.AccessLog" constrained="true"></one-to-one>
    </class>
 </hibernate-mapping>

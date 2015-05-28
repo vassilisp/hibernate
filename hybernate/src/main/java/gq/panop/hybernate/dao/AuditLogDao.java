@@ -99,6 +99,11 @@ public class AuditLogDao {
     	return transactionIds;
 	}
 	
-	
+	public List<String> getAllUsers(){
+		
+		String queryString = "SELECT DISTINCT al.userId FROM AuditLog AS al";
+		Query query =  HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+		return HibernateUtil.performSimpleQuery(query);
+	}
 	
 }
