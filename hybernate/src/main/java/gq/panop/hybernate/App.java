@@ -2,9 +2,8 @@ package gq.panop.hybernate;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import gq.panop.hybernate.dao.AccessLogDao;
@@ -23,8 +22,6 @@ public class App
 {
 
     public static void main( String[] args ){
-        long starttime;
-        long endtime;
 
         String userId = "mcico";
         
@@ -48,8 +45,8 @@ public class App
     	
     	//Create a keyboard scanner and verify userId existance
     	Boolean foundFlag = false;
+		Scanner keyboard = new Scanner(System.in);
     	while(!foundFlag){
-    		Scanner keyboard = new Scanner(System.in);
     		System.out.print("perform database request for userId: ");
     		userId = keyboard.next();
 
@@ -64,6 +61,7 @@ public class App
     			break;
     		}else{System.out.println("UserId not Found in list of available users");}
     	}
+    	keyboard.close();
     	
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
     		System.out.println(auditLogs.toString());
@@ -74,6 +72,7 @@ public class App
     		System.out.println(auditLogs.getTransactionId());
     	}
     	performance.Tock("slow AuditLog retrieval by userId took");
+    	separate();
 
     	
     	performance.Tick();
@@ -82,6 +81,7 @@ public class App
     		System.out.println(transactionId);
     	}
     	performance.Tock("fast AuditLog retrieval by userId took");
+    	separate();
 
   
     	
@@ -112,36 +112,35 @@ public class App
     	for (AccessLog accLog: accessLogsbyUser){
 
     		System.out.println(accLog.toString());
+    		Date realDate = new Date(accLog.getRequestDate().longValue());
+    		System.out.println("The date is : " + realDate);
     	}
     	performance.Tock("Retrieving all accessLogs by providing a userId (all done by MySQL)");
 
     	System.out.println("half half length result size : " + accessLogs.size() + "  , full length result size :  " + accessLogs.size());
     	
     	
-    	Comparator accessLogCompare = new Comparator(){
+    	//create comparator required to sort the result lists based on their timestamps
+    	Comparator<AccessLog> accessLogCompare = new Comparator<AccessLog>(){
 			@Override
-			public int compare(Object arg0, Object arg1) {
-				AccessLog aL1 = (AccessLog) arg0;
-				AccessLog aL2 = (AccessLog) arg1;
-
-				Long v1 = aL1.getRequestDate().longValue();
-				Long v2 = aL2.getRequestDate().longValue();
-				return (v1 > v2)? 1 : -1 ;
+			public int compare(AccessLog aL1, AccessLog aL2){
+				return (aL1.getRequestDate().longValue() > aL2.getRequestDate().longValue())? 1 : -1 ;
 			}	
     	};
     	
+    	performance.Tick();
     	Collections.sort(accessLogsbyUser, accessLogCompare);
     	Collections.sort(accessLogs, accessLogCompare);
+    	performance.Tock("sorting of result lists");
 
-    	/*
-
+    	
     	for(int i=0; i< accessLogs.size(); i++)	{
     		System.out.println(accessLogs.get(i));
     		System.out.println(accessLogsbyUser.get(i));
     		System.out.println(accessLogsbyUser.get(i).equals(accessLogs.get(i)));
     	}
     	
-		*/
+		
     	
     }
     
