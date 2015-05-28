@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import gq.panop.hybernate.dao.AccessLogDao;
 import gq.panop.hybernate.dao.AuditLogDao;
@@ -20,9 +21,7 @@ import gq.panop.util.PerformanceUtil;
  */
 public class App 
 {
-	
 
-	
     public static void main( String[] args ){
         long starttime;
         long endtime;
@@ -37,29 +36,55 @@ public class App
     		System.out.println(auditLog.toString());
     	}
     	*/
+
+    	
+    	performance.Tick();
+    	List<String> userIds = dao.getAllUsers();
+    	performance.Tock();
+    	for (String user : userIds){
+    		System.out.println(user);
+    	}
+    	
+    	
+    	//Create a keyboard scanner and verify userId existance
+    	Boolean foundFlag = false;
+    	while(!foundFlag){
+    		Scanner keyboard = new Scanner(System.in);
+    		System.out.print("perform database request for userId: ");
+    		userId = keyboard.next();
+
+    		for (String user : userIds){
+    			if (user.equals(userId)){
+    				foundFlag=true;
+    				break;
+    			}
+    		}
+    		if (foundFlag==true){
+    			System.out.println("Performing Search for userId: " + userId);
+    			break;
+    		}else{System.out.println("UserId not Found in list of available users");}
+    	}
     	
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
     		System.out.println(auditLogs.toString());
     	}
     	
-    	starttime = System.nanoTime();
+    	performance.Tick();
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
     		System.out.println(auditLogs.getTransactionId());
     	}
-    	endtime = System.nanoTime();
-    	System.out.println("slow took: " + Long.toString(endtime-starttime));
+    	performance.Tock("slow AuditLog retrieval by userId took");
+
     	
-    	starttime = System.nanoTime();
+    	performance.Tick();
     	List<String> transactionIds = dao.getTransactionIds2(userId);
     	for (String transactionId : transactionIds){
     		System.out.println(transactionId);
     	}
-       	endtime = System.nanoTime();
-    	System.out.println("fast took: " + Long.toString(endtime-starttime));
+    	performance.Tock("fast AuditLog retrieval by userId took");
+
+  
     	
-    	
-    	//Create a keyboard scanner
-    	//TODO
     	
     	AccessLogDao accessLogDao = new AccessLogDao();
     	
@@ -90,7 +115,7 @@ public class App
     	}
     	performance.Tock("Retrieving all accessLogs by providing a userId (all done by MySQL)");
 
-    	System.out.println("half half length result size : " + accessLogsbyUser.size() + "  , full length result size :  " + accessLogs.size());
+    	System.out.println("half half length result size : " + accessLogs.size() + "  , full length result size :  " + accessLogs.size());
     	
     	
     	Comparator accessLogCompare = new Comparator(){
