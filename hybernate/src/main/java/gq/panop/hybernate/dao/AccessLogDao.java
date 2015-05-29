@@ -35,8 +35,9 @@ public class AccessLogDao {
 	
 	public List<AccessLog> getAccessLogs(String userId_fromAuditLog){
 		
-		String queryString = "FROM AccessLog WHERE transactionId IN ( SELECT transactionId FROM AuditLog WHERE userId = :userId )";
-		queryString = "Select acl FROM AccessLog acl join acl.auditLog WHERE acl.transactionId=acl.auditLog.transactionId AND userId =:userId";
+		//String queryString = "FROM AccessLog WHERE transactionId IN ( SELECT transactionId FROM AuditLog WHERE userId = :userId )";
+		//old optimized//  String queryString = "Select acl FROM AccessLog acl JOIN acl.auditLog WHERE acl.transactionId=acl.auditLog.transactionId ANDacl.auditLog.userId =:userId";
+		String queryString = "Select acl FROM AccessLog acl JOIN acl.auditLog WHERE acl.auditLog.userId =:userId";
 		Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 		query.setString("userId", userId_fromAuditLog);
 		

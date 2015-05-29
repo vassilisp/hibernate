@@ -133,13 +133,30 @@ public class App
     	Collections.sort(accessLogs, accessLogCompare);
     	performance.Tock("sorting of result lists");
 
-    	
+    	/*
     	for(int i=0; i< accessLogs.size(); i++)	{
     		System.out.println(accessLogs.get(i));
     		System.out.println(accessLogsbyUser.get(i));
     		System.out.println(accessLogsbyUser.get(i).equals(accessLogs.get(i)));
     	}
+    	*/
     	
+    	/*
+		Date realDate = new Date();    	
+    	for (int i=0;i<10;i++){
+    		long time = System.currentTimeMillis();
+        	System.out.println(time);
+
+    		realDate.setTime(time);
+    		System.out.println("The date is : " + realDate + "  |  " + realDate.getHours()+ "  |  " +realDate.getMinutes() + "  |  " + realDate.getSeconds());
+    		try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	*/
 		
     	
     }
