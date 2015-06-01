@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+    <class name="gq.panop.hibernate.model.NavajoLog" table="NavajoLog">
+      <id name="transactionId" > <generator class="native"/></id>
+      <property name="timestamp"/>
+      <property name="clientIp"/>
+      <property name="eventType"/>
+      <property name="decryptedFrontendRequest"/>
+      <!-- <property name="transactionId" column="transactionId" type="String"/> -->
+      <property name="clientId" column="clientId" type="string"/>
+      <one-to-one name="accessLog" class="gq.panop.hibernate.model.AccessLog" constrained="true"></one-to-one>
+   </class>
+</hibernate-mapping>

@@ -106,4 +106,11 @@ public class AuditLogDao {
 		return HibernateUtil.performSimpleQuery(query);
 	}
 	
+	public List<String> getClientIds(String userId){
+	    
+	    String queryString = "SELECT clientId FROM AuditLog as al WHERE al.userId=:userId";
+	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+	    query.setString("userId", userId);
+	    return HibernateUtil.performSimpleQuery(query);
+	}
 }

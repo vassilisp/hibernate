@@ -61,7 +61,7 @@ public class App
     			break;
     		}else{System.out.println("UserId not Found in list of available users");}
     	}
-    	keyboard.close();
+    	//keyboard.close();
     	
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
     		System.out.println(auditLogs.toString());
@@ -106,9 +106,9 @@ public class App
     	performance.Tock("Retrieving all accessLogs by providing a list of transactionIds");
     	separate();
     	
-    	//Retrieving all accessLogs by providing a userId (all done by MySQL
+    	//Retrieving all accessLogs by providing a userId (all done by MySQL)
     	performance.Tick();
-    	List<AccessLog> accessLogsbyUser = accessLogDao.getAccessLogs(userId);
+    	List<AccessLog> accessLogsbyUser = accessLogDao.getAccessLogs_byuserId(userId);
     	for (AccessLog accLog: accessLogsbyUser){
 
     		System.out.println(accLog.toString());
@@ -159,8 +159,64 @@ public class App
     	*/
 		
     	
+    	
+    	
+    	
+    	
+    	performance.Tick();
+    	List<String> clientIds = dao.getClientIds(userId);
+    	int i=0;
+    	for (String cids : clientIds){
+    	    System.out.println(i + ")\t" + cids);
+    	    i++;
+    	}
+    	System.out.println("Results: " + clientIds.size());
+    	performance.Tock("Retrive List of clientIds from the AuditLog providing a userId");
+    	separate();
+    	
+    	String clientId = "";
+    	//Create a keyboard scanner and verify clientId existance
+        //Scanner keyboard = new Scanner(System.in);
+        Integer index=-1;
+        while(true){
+          System.out.print("perform search request for clientId index: ");
+          try{
+              String in = keyboard.next();
+              index = Integer.parseInt(in);
+          }catch(Throwable e){
+              System.out.println(e);
+          }
+          if ((index>=0) && (index<i)){
+              foundFlag=true;
+              try{
+                  clientId = clientIds.get(index);
+              }catch(Throwable e){
+                  System.out.println(e);
+              }
+              System.out.println("Performing Search for clientId: " + index + " )\t" + clientId);
+              break;
+            }else{
+                System.out.println("Index not available in range of available indexes");
+            }
+        }
+        keyboard.close();
+    	
+    	performance.Tick();
+    	List<AccessLog> acl = accessLogDao.getAccessLogs_byclientId(clientId);
+    	for (AccessLog acl_iter: acl){
+    	    System.out.println(acl_iter.getRequestDate().toString() + " - " + toDate(acl_iter.getRequestDate().longValue()) + " /// " + acl_iter.toString());
+    	}
+    	performance.Tock("retrieving AccessLogs for a specific clientId by first finding the transactionIds performed by this clientId from NavajoLog");
+    	separate();
+    	
+    
     }
     
+    private static String toDate(long timestamp){
+        Date realDate = new Date();
+        realDate.setTime(timestamp);
+        return realDate.toString();
+    }
 
     private static void separate(){
     	System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");

@@ -20,6 +20,9 @@ public class AccessLog{
 	
 	private AuditLog auditLog;
 	
+	private NavajoLog navajoLog;
+	
+	
 	public AccessLog(){}
 
 	/**
@@ -220,7 +223,21 @@ public class AccessLog{
 		this.auditLog = auditLog;
 	}
 
-	@Override
+	/**
+     * @return the navajoLog
+     */
+    public NavajoLog getNavajoLog() {
+        return navajoLog;
+    }
+
+    /**
+     * @param navajoLog the navajoLog to set
+     */
+    public void setNavajoLog(NavajoLog navajoLog) {
+        this.navajoLog = navajoLog;
+    }
+
+    @Override
 	public String toString(){
 		return "[ clientIP: " + clientIP + ", requestedResource:" + requestedResource + ", serverName: " + serverName 
 				+ ",  referer: " + referer + ", userAgent:" + userAgent + ", transactionId:" + transactionId 
