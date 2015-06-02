@@ -10,6 +10,7 @@ import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.dao.AuditLogDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.hibernate.model.AuditLog;
+import gq.panop.util.HibernateUtil;
 import gq.panop.util.PerformanceUtil;
 
 
@@ -37,10 +38,11 @@ public class App
     	
     	performance.Tick();
     	List<String> userIds = dao.getAllUsers();
-    	performance.Tock();
     	for (String user : userIds){
     		System.out.println(user);
     	}
+        performance.Tock();
+        separate();
     	
     	
     	//Create a keyboard scanner and verify userId existance
@@ -63,9 +65,12 @@ public class App
     	}
     	//keyboard.close();
     	
+    	performance.Tick();
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
     		System.out.println(auditLogs.toString());
     	}
+    	performance.Tock("get the AuditLogs with a specific userId");
+    	separate();
     	
     	performance.Tick();
     	for (AuditLog auditLogs : dao.getAuditLogs(userId)){
@@ -108,12 +113,12 @@ public class App
     	
     	//Retrieving all accessLogs by providing a userId (all done by MySQL)
     	performance.Tick();
-    	List<AccessLog> accessLogsbyUser = accessLogDao.getAccessLogs_byuserId(userId);
+    	List<AccessLog> accessLogsbyUser = accessLogDao.getAccessLogs_fromAuditLog(userId);
     	for (AccessLog accLog: accessLogsbyUser){
 
     		System.out.println(accLog.toString());
-    		Date realDate = new Date(accLog.getRequestDate().longValue());
-    		System.out.println("The date is : " + realDate);
+    		//Date realDate = new Date(accLog.getRequestDate().longValue());
+    		//System.out.println("The date is : " + realDate);
     	}
     	performance.Tock("Retrieving all accessLogs by providing a userId (all done by MySQL)");
 
@@ -157,21 +162,17 @@ public class App
 			}
     	}
     	*/
-		
-    	
-    	
-    	
-    	
+
     	
     	performance.Tick();
     	List<String> clientIds = dao.getClientIds(userId);
-    	int i=0;
+        performance.Tock("Retrive List of clientIds from the AuditLog providing a userId");
+        int i=0;
     	for (String cids : clientIds){
     	    System.out.println(i + ")\t" + cids);
     	    i++;
     	}
     	System.out.println("Results: " + clientIds.size());
-    	performance.Tock("Retrive List of clientIds from the AuditLog providing a userId");
     	separate();
     	
     	String clientId = "";
@@ -199,17 +200,61 @@ public class App
                 System.out.println("Index not available in range of available indexes");
             }
         }
-        keyboard.close();
+        
     	
     	performance.Tick();
-    	List<AccessLog> acl = accessLogDao.getAccessLogs_byclientId(clientId);
+    	List<AccessLog> acl = accessLogDao.getAccessLogs_fromNavajoLog(clientId);
+    	performance.Tock("retrieving AccessLogs for a specific clientId by first finding the transactionIds performed by this"
+                + " clientId from NavajoLog");
     	for (AccessLog acl_iter: acl){
-    	    System.out.println(acl_iter.getRequestDate().toString() + " - " + toDate(acl_iter.getRequestDate().longValue()) + " /// " + acl_iter.toString());
+    	    System.out.println(acl_iter.getRequestDate().toString() + " - " + toDate(acl_iter.getRequestDate().longValue()) + " /// " 
+    	            + acl_iter.toString());
     	}
-    	performance.Tock("retrieving AccessLogs for a specific clientId by first finding the transactionIds performed by this clientId from NavajoLog");
     	separate();
     	
-    
+    	
+    	performance.Tick();
+    	List<AccessLog> acl2 = accessLogDao.getAccessLogs_fromNavajoLog_fromAuditLog(userId);
+    	performance.Tock("retrieving AccessLogs for a specific userId by first finding the clientIds from the AuditLog and then the"
+    	        + " transactionIds performed by those clientIds from NavajoLog");System.out.println(acl2.size());
+    	    	
+    	//ask about displaying the results, in group (x) or all at once (0)
+    	Integer groupSize = -1;
+    	System.out.println("Show results? (y/n)");
+    	String in = keyboard.next();
+    	if (in.equals("y")){
+    	    System.out.println("define group size (0 displays all results at once)");
+    	    in = keyboard.next();
+    	    groupSize = Integer.parseInt(in);
+    	}
+
+    	
+    	Integer endValue = acl2.size()/groupSize;
+    	AccessLog currentAcL;
+    	for(int i1=0; i1<endValue; i1++){
+            System.out.println("Showing AccessLog for userId: " + userId + " , records " + (i1*groupSize+1) 
+                    + " to " + ((i1*groupSize)+groupSize) + "out of " + acl2.size() + " / type 'e' to exit");
+    	    for(int j=0; j<groupSize; j++){
+    	        try{
+    	            currentAcL = acl2.get((i1*groupSize)+j);
+    	            System.out.println(currentAcL.getRequestDate().toString() + " - " + toDate(currentAcL.getRequestDate().longValue()) 
+    	                    + " /// " + currentAcL.toString());
+    	        }catch( Throwable e){
+    	            System.out.println(e);
+    	            break;   
+    	        }
+    	    }
+            in = keyboard.nextLine();
+            if (in.equalsIgnoreCase("e")) break;
+    	}
+    	
+        for (AccessLog acl_iter: acl2){
+            //System.out.println(acl_iter.getRequestDate().toString() + " - " + toDate(acl_iter.getRequestDate().longValue()) + " /// " + acl_iter.toString());
+        }
+        
+        
+        keyboard.close();
+        HibernateUtil.getSessionFactory().close();
     }
     
     private static String toDate(long timestamp){

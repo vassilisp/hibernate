@@ -5,11 +5,24 @@
 
 <hibernate-mapping>
     <class name="gq.panop.hibernate.model.AuditLog" table="AuditLog">
-      <id name="transactionId" > <generator class="native"/></id>
+      <id name="clientId" > <generator class="native"/></id>
       <property name="timestamp"/>
       <property name="userId" type="string"/>
       <!-- <property name="transactionId" column="transactionId" type="String"/> -->
-      <property name="clientId" column="clientId" type="string"/>
+      <property name="transactionId"/>
       <one-to-one name="accessLog" class="gq.panop.hibernate.model.AccessLog" constrained="true"></one-to-one>
+      <!-- 
+      <set name="navajoLog" table="NajavoLog" >
+            <key>
+                <column name="clientId"></column>
+            </key>
+            <one-to-many class="gq.panop.hibernate.model.NavajoLog"/>
+      </set>
+ -->
+ <list name="navajoLog" table ="NavajoLog">
+         <key column="clientId"/>
+         <list-index base="0"/>
+         <one-to-many class="gq.panop.hibernate.model.NavajoLog"/>
+      </list>
    </class>
 </hibernate-mapping>

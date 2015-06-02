@@ -2,6 +2,8 @@ package gq.panop.hibernate.model;
 
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 public class AuditLog {
 	//private int id;
@@ -11,6 +13,7 @@ public class AuditLog {
 	private String clientId;
 	
 	private AccessLog accessLog;
+	private List<NavajoLog> navajoLog;
 
 	public AuditLog(){}
 
@@ -51,7 +54,22 @@ public class AuditLog {
 	public void setAccessLog(AccessLog accessLog) {
 		this.accessLog = accessLog;
 	}
-	@Override
+	
+	/**
+     * @return the navajoLog
+     */
+    public List<NavajoLog> getNavajoLog() {
+        return navajoLog;
+    }
+
+    /**
+     * @param navajoLog the navajoLog to set
+     */
+    public void setNavajoLog(List<NavajoLog> navajoLog) {
+        this.navajoLog = navajoLog;
+    }
+
+    @Override
 	public String toString(){
 		return "[ timestamp: " + timestamp + ", userId:" + userId + ", transactionId: " + transactionId 
 				+ ",  clientId: " + clientId + " ]";

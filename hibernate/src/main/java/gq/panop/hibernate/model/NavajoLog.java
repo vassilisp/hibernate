@@ -12,6 +12,7 @@ public class NavajoLog {
     private String frontendRequest;
     
     private AccessLog accessLog;
+    private AuditLog auditLog;
     
     public NavajoLog(){}
 
@@ -60,6 +61,7 @@ public class NavajoLog {
     /**
      * @return the clientId
      */
+ 
     public String getClientId() {
         return clientId;
     }
@@ -67,10 +69,12 @@ public class NavajoLog {
     /**
      * @param clientId the clientId to set
      */
+ 
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }
-
+ 
+    
     /**
      * @return the eventType
      */
@@ -125,6 +129,20 @@ public class NavajoLog {
      */
     public void setAccessLog(AccessLog accessLog) {
         this.accessLog = accessLog;
+    }
+
+    /**
+     * @return the auditLog
+     */
+    public AuditLog getAuditLog() {
+        return auditLog;
+    }
+
+    /**
+     * @param auditLog the auditLog to set
+     */
+    public void setAuditLog(AuditLog auditLog) {
+        this.auditLog = auditLog;
     }
     
     
