@@ -91,7 +91,7 @@ public class AuditLogDao {
     	
     	List<String> transactionIds = new ArrayList<String>();
     	
-    	String queryString = "Select al.transactionId From AuditLog as al where al.userId = :userId";
+    	String queryString = "SELECT al.transactionId FROM AuditLog al WHERE al.userId = :userId";
     	Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
     	query.setString("userId", userId);
     	transactionIds = HibernateUtil.performSimpleQuery(query);
@@ -108,7 +108,7 @@ public class AuditLogDao {
 	
 	public List<String> getClientIds(String userId){
 	    
-	    String queryString = "SELECT clientId FROM AuditLog as al WHERE al.userId=:userId";
+	    String queryString = "SELECT DISTINCT al.clientId FROM AuditLog al WHERE al.userId=:userId";
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);
 	    return HibernateUtil.performSimpleQuery(query);

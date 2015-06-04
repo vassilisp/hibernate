@@ -62,7 +62,7 @@ public class AccessLogDao {
 	public List<AccessLog> getAccessLogs_fromNavajoLog_fromAuditLog(String userId){
 	    //NOT WORKING queryString VV
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
-	    String queryString = "SELECT acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId";
+	    String queryString = "SELECT distinct acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null'";
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);
 	    
