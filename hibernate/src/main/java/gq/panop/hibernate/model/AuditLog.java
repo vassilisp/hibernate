@@ -1,9 +1,7 @@
 package gq.panop.hibernate.model;
 
 import java.math.BigInteger;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 public class AuditLog {
 	//private int id;
