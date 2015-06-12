@@ -16,6 +16,8 @@ public class App
         
         Graphs.Start();
         
+        JungGraph.Start();
+        
         HibernateUtil.getSessionFactory().close();
 
     }

@@ -80,6 +80,9 @@ public class Graphs {
         double color = 0;
         Integer order = 0;
         
+        
+        Integer startingDay = 0;
+        boolean setup = false;
         for (AccessLog acl: acl2){
             color += 0.01;
             order +=1;
@@ -100,6 +103,13 @@ public class Graphs {
             
             label = order.toString() + " )  " + method + " <<AT>> " + toDate(acl.getRequestDate().longValue());
             
+            if (toDate(acl.getRequestDate().longValue()).getDay()!=startingDay){
+                if (setup == false){
+                    setup = true;
+                    startingDay = toDate(acl.getRequestDate().longValue()).getDay();
+                }else
+                    break;
+            }
             rightNode = rightNode.replace("POST", "").replace("GET", "");
             
             edge = leftNode + "  <<TO>> " + rightNode;
@@ -155,10 +165,10 @@ public class Graphs {
         }
           
     }
-    private static String toDate(long timestamp){
+    private static Date toDate(long timestamp){
         Date realDate = new Date();
         realDate.setTime(timestamp);
-        return realDate.toString();
+        return realDate;
     }
     
 }
