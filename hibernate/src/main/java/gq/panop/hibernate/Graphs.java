@@ -6,10 +6,13 @@ import gq.panop.hibernate.model.AccessLog;
 import gq.panop.util.PerformanceUtil;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
@@ -71,42 +74,72 @@ public class Graphs {
         String leftNode = "";
         String rightNode = "";
         
-        Boolean get = false;
-        Boolean post = false;
-        
-        
         String method="";
         String label = "";
         
-        
-        
         double color = 0;
         Integer order = 0;
+        
         for (AccessLog acl: acl2){
             color += 0.01;
             order +=1;
             
             leftNode = acl.getReferer();
-            if (leftNode == null) leftNode = "NULL";
-            if (leftNode.isEmpty()) leftNode = "NULL";
-            if (leftNode.equalsIgnoreCase("null")) leftNode = "NULL";
+            if (leftNode == null || leftNode.isEmpty() || leftNode.equalsIgnoreCase("null")) leftNode = "NULL";
+
             leftNode = leftNode.replace("https://aww-int.adnovum.ch", "").replace("https://aww.adnovum.ch", "");
            
-            
             rightNode = acl.getRequestedResource().toString().replace(" HTTP/1.1" , "").replace(" ", "");
             
-            get =  rightNode.startsWith("GET");
-            post = rightNode.startsWith("POST");
-            if (post) method = "POST";
-            if (get) method ="GET";
+            if (rightNode.startsWith("GET")){
+                method = "GET";
+            }else if (rightNode.startsWith("POST")){
+                method = "POST";
+            }
+
             
             label = order.toString() + " )  " + method + " <<AT>> " + toDate(acl.getRequestDate().longValue());
             
             rightNode = rightNode.replace("POST", "").replace("GET", "");
             
-            edge = leftNode + "  <<TO>>" + rightNode;
+            edge = leftNode + "  <<TO>> " + rightNode;
+            
+            
+            Iterator<Edge> ee = null;
+            try{
+                Node aa = graph.getNode(leftNode);
+                ee = aa.getEachEdge().iterator();
+            }catch (Throwable e){
+                System.out.println("NODE not found || " + e);
+            }
+
+            if (ee != null){
+            while (ee.hasNext()){
+                Edge edg = ee.next();
+                String oldLabel = edg.getAttribute("ui.label");
+                
+                Node aa1 = edg.getNode1();
+                Node aa0 = edg.getNode0();
+                
+                boolean rr11 = aa1.equals(graph.getNode(leftNode));
+                boolean rr10 = aa1.equals(graph.getNode(rightNode));
+                
+                boolean rr01 = aa0.equals(graph.getNode(rightNode));
+                boolean rr00 = aa0.equals(graph.getNode(leftNode));
+                
+                if ((rr10 && rr00) || (rr11 && rr01)){
+                    label = oldLabel + " /n " + label;
+                    edg.changeAttribute("ui.label", "");
+                }
+            }
+            }
+            
+            
+            
             graph.addEdge(edge, leftNode, rightNode, true);
             
+            String aaaa=graph.getEdge(edge).getAttribute("ui.label");
+            graph.getEdge(edge).changeAttribute("ui.label", aaaa + label);
             graph.getEdge(edge).addAttribute("ui.label", label);
             graph.getEdge(edge).addAttribute("ui.color", color);
             graph.getNode(leftNode).addAttribute("ui.label", leftNode);
