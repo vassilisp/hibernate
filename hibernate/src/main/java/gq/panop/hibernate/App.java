@@ -24,15 +24,15 @@ public class App
         
         //Graphs.Start();
         
-        AnimatingAddNodeDemo.play();
+        //AnimatingAddNodeDemo.play();
        
-        //JungGraph jg = new JungGraph();
-        //jg.Start();
+        JungGraph jg = new JungGraph();
+        jg.Start();
         
         //InteractiveGraphView1 igv = new InteractiveGraphView1();
         //igv.start();
         
-        //HibernateUtil.getSessionFactory().close();
+        HibernateUtil.getSessionFactory().close();
         
         String test = "GET /fecru/static/mzfr4p/2static/style/jquery/theme/concat.commonScriptAndStyleIncludes.4a8d31baefacdc3a65a699257c20ccaf.cache.css HTTP/1.1";
         

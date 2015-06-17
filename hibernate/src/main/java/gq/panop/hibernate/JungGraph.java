@@ -1,25 +1,38 @@
 package gq.panop.hibernate;
 
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.List;
 
 import javax.swing.JFrame;
 
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
+import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.SpringLayout;
+import edu.uci.ics.jung.algorithms.layout.StaticLayout;
+import edu.uci.ics.jung.algorithms.layout.util.Relaxer;
+import edu.uci.ics.jung.algorithms.layout.util.VisRunner;
+import edu.uci.ics.jung.algorithms.util.IterativeContext;
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
+import edu.uci.ics.jung.graph.event.GraphEvent;
+import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.graph.util.EdgeType;
+import edu.uci.ics.jung.graph.util.Graphs;
 import edu.uci.ics.jung.visualization.BasicVisualizationServer;
-
 import edu.uci.ics.jung.visualization.VisualizationViewer;
-
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import edu.uci.ics.jung.visualization.layout.LayoutTransition;
+import edu.uci.ics.jung.visualization.renderers.Renderer;
+import edu.uci.ics.jung.visualization.util.Animator;
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.util.MiscUtil;
@@ -30,40 +43,41 @@ public class JungGraph extends javax.swing.JApplet{
 
     static int edgeCount = 0;
     
-    MyNode targetN;
-
-    MyNode sourceN;
-    DirectedSparseMultigraph<String, String> svg;
+    private Graph<String,String> svg = null;
+    private AbstractLayout<String,String> layout = null;
+    private VisualizationViewer<String,String> vv = null;
     
     public JungGraph(){}
     
+    
     public void Start(){
-         svg = new DirectedSparseMultigraph<String, String>();
-         
-        //svg.addVertex((Integer)1);
-        //svg.addVertex((Integer)2);
-        //svg.addVertex((Integer)3);
+        init();
+        Create();
+    }
+    
+    public void init(){
         
-        // Add some edges. From above we defined these to be of type String
-        // Note that the default is for undirected edges.
-        
-        //svg.addEdge("Edge-A", 1, 2); // Note that Java 1.5 auto-boxes primitives
-        //svg.addEdge("Edge-B", 2, 3);
-        
-        // Let's see what we have. Note the nice output from the
-        // SparseMultigraph<V,E> toString() method
-        //System.out.println("The graph g = " + svg.toString());
+        Graph<String,String> ig = Graphs.<String,String>synchronizedDirectedGraph(new DirectedSparseMultigraph<String,String>());
 
+        ObservableGraph<String,String> og = new ObservableGraph<String,String>(ig);
+        og.addGraphEventListener(new GraphEventListener<String,String>() {
+
+            public void handleGraphEvent(GraphEvent<String, String> evt) {
+                System.err.println("got "+evt);
+            }});
+        this.svg = og;
+   
         // The Layout<V, E> is parameterized by the vertex and edge types
         //Layout<String, String> layout = new FRLayout(svg);
          
         //Layout<String, String> layout = new edu.uci.ics.jung.algorithms.layout.KKLayout<String, String>(svg);
          
-         Layout<String, String> layout = new edu.uci.ics.jung.algorithms.layout.DAGLayout<String, String>(svg);
+        //layout = new edu.uci.ics.jung.algorithms.layout.DAGLayout<String, String>(svg);
 
+        layout = new FRLayout<String,String>(svg);
+        //layout = new SpringLayout<String, String>(svg);
         layout.setSize(new Dimension(800,800)); // sets the initial size of the space
-        VisualizationViewer<String, String> vv =
-                new VisualizationViewer<String, String>(layout);
+        vv = new VisualizationViewer<String, String>(layout);
         vv.setPreferredSize(new Dimension(900,900));
         // Show vertex and edge labels
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
@@ -74,13 +88,46 @@ public class JungGraph extends javax.swing.JApplet{
         vv.setGraphMouse(gm);
         vv.addKeyListener(gm.getModeKeyListener());
 
+        vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller() {
+            @Override
+            public String transform(Object v) {
+                String result = (String) v;
+                try{
+                    if(((String)v).indexOf("?")>0){
+                        result = ((String)v).substring(0, ((String)v).indexOf("?"));
+                    }
+                }catch (Throwable e){
+                    System.out.println(e);
+                }
+                return result;
+            }});
+        
+        vv.addComponentListener(new ComponentAdapter() {
+
+            /**
+             * @see java.awt.event.ComponentAdapter#componentResized(java.awt.event.ComponentEvent)
+             */
+            @Override
+            public void componentResized(ComponentEvent arg0) {
+                super.componentResized(arg0);
+                System.err.println("resized");
+                layout.setSize(arg0.getComponent().getSize());
+                Refresh();
+            }});
+        
+        
         JFrame frame = new JFrame("Interactive Graph View 1");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(vv);
         frame.pack();
         frame.setVisible(true);
 
-        
+        vv.getRenderer().getVertexLabelRenderer().setPosition(Renderer.VertexLabel.Position.AUTO);
+    }
+    
+    
+    public void Create(){
+
         /*
         svg.addVertex("bill");
         svg.addVertex("pan");
@@ -148,7 +195,7 @@ public class JungGraph extends javax.swing.JApplet{
             
             label = order.toString() + " )  " + method + " <<AT>> " + MiscUtil.toDate(acl.getRequestDate().longValue());
             
-            if (MiscUtil.toDate(acl.getRequestDate().longValue()).getDay()!=startingDay){
+            if (MiscUtil.toDate(acl.getRequestDate().longValue()).getDay()>startingDay+1){
                 if (setup == false){
                     setup = true;
                     startingDay = MiscUtil.toDate(acl.getRequestDate().longValue()).getDay();
@@ -159,17 +206,31 @@ public class JungGraph extends javax.swing.JApplet{
             
             edge = order.toString() + ") " + method + "  " + MiscUtil.toDate(acl.getRequestDate().longValue());
             
-            sourceN = new MyNode(leftNode);
-            targetN = new MyNode(rightNode);
             svg.addVertex(leftNode);
             svg.addVertex(rightNode);
             
-            MyEdge link = new MyEdge(1,1);
             
             svg.addEdge(edge, leftNode, rightNode);
             
             try {
-                Thread.sleep(1000);
+                
+                layout.initialize();
+
+                Relaxer relaxer = new VisRunner((IterativeContext)layout);
+                relaxer.stop();
+                relaxer.prerelax();
+                StaticLayout<String,String> staticLayout =
+                    new StaticLayout<String,String>(svg, layout);
+                LayoutTransition<String,String> lt =
+                    new LayoutTransition<String,String>(vv, vv.getGraphLayout(),
+                            staticLayout);
+                Animator animator = new Animator(lt);
+                animator.start();
+//              vv.getRenderContext().getMultiLayerTransformer().setToIdentity();
+                vv.repaint();
+                
+                Thread.sleep(500);
+                
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -179,7 +240,29 @@ public class JungGraph extends javax.swing.JApplet{
         }
         System.out.println("The graph g2 = " + svg.toString());
         
+        Refresh();
+        
     }
+    
+    public void Refresh(){
+        layout.initialize();
+
+        Relaxer relaxer = new VisRunner((IterativeContext)layout);
+        relaxer.stop();
+        relaxer.prerelax();
+        StaticLayout<String,String> staticLayout =
+            new StaticLayout<String,String>(svg, layout);
+        LayoutTransition<String,String> lt =
+            new LayoutTransition<String,String>(vv, vv.getGraphLayout(),
+                    staticLayout);
+        Animator animator = new Animator(lt);
+        animator.start();
+//      vv.getRenderContext().getMultiLayerTransformer().setToIdentity();
+        vv.repaint();
+    }
+    
+    
+    
     
     class MyNode {
         String id;
