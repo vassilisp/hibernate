@@ -124,32 +124,29 @@ public class Graphs {
             }
 
             if (ee != null){
-            while (ee.hasNext()){
-                Edge edg = ee.next();
-                String oldLabel = edg.getAttribute("ui.label");
-                
-                Node aa1 = edg.getNode1();
-                Node aa0 = edg.getNode0();
-                
-                boolean rr11 = aa1.equals(graph.getNode(leftNode));
-                boolean rr10 = aa1.equals(graph.getNode(rightNode));
-                
-                boolean rr01 = aa0.equals(graph.getNode(rightNode));
-                boolean rr00 = aa0.equals(graph.getNode(leftNode));
-                
-                if ((rr10 && rr00) || (rr11 && rr01)){
-                    label = oldLabel + " /n " + label;
-                    edg.changeAttribute("ui.label", "");
+                while (ee.hasNext()){
+                    Edge edg = ee.next();
+                    String oldLabel = edg.getAttribute("ui.label");
+
+                    Node aa1 = edg.getNode1();
+                    Node aa0 = edg.getNode0();
+
+                    boolean rr11 = aa1.equals(graph.getNode(leftNode));
+                    boolean rr10 = aa1.equals(graph.getNode(rightNode));
+
+                    boolean rr01 = aa0.equals(graph.getNode(rightNode));
+                    boolean rr00 = aa0.equals(graph.getNode(leftNode));
+
+                    if ((rr10 && rr00) || (rr11 && rr01)){
+                        label = oldLabel + " /n " + label;
+                        edg.changeAttribute("ui.label", "");
+                    }
                 }
-            }
             }
             
             
             
             graph.addEdge(edge, leftNode, rightNode, true);
-            
-            String aaaa=graph.getEdge(edge).getAttribute("ui.label");
-            graph.getEdge(edge).changeAttribute("ui.label", aaaa + label);
             graph.getEdge(edge).addAttribute("ui.label", label);
             graph.getEdge(edge).addAttribute("ui.color", color);
             graph.getNode(leftNode).addAttribute("ui.label", leftNode);
