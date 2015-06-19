@@ -1,11 +1,21 @@
 package gq.panop.hibernate;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Paint;
+import java.awt.Shape;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JFrame;
+
+import org.apache.commons.collections15.Transformer;
 
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
@@ -29,6 +39,7 @@ import edu.uci.ics.jung.visualization.BasicVisualizationServer;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
+import edu.uci.ics.jung.visualization.decorators.AbstractVertexShapeTransformer;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.LayoutTransition;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
@@ -49,6 +60,10 @@ public class JungGraph extends javax.swing.JApplet{
     
     public JungGraph(){}
     
+    //Algo setup parameters
+    public Boolean keepParameters = false;
+    public Integer numberOfDays = 2;
+    public Boolean showLinkLabels = false;
     
     public void Start(){
         init();
@@ -78,7 +93,7 @@ public class JungGraph extends javax.swing.JApplet{
         //layout = new SpringLayout<String, String>(svg);
         layout.setSize(new Dimension(800,800)); // sets the initial size of the space
         vv = new VisualizationViewer<String, String>(layout);
-        vv.setPreferredSize(new Dimension(900,900));
+        //vv.setPreferredSize(new Dimension(900,900));
         // Show vertex and edge labels
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
         vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller());
@@ -112,8 +127,60 @@ public class JungGraph extends javax.swing.JApplet{
                 super.componentResized(arg0);
                 System.err.println("resized");
                 layout.setSize(arg0.getComponent().getSize());
+                vv.setSize(layout.getSize());
                 Refresh();
             }});
+        
+        
+        vv.addKeyListener(new KeyListener(){
+
+            @Override
+            public void keyPressed(KeyEvent arg0) {
+                // TODO Auto-generated method stub
+                System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " pressed" );
+                
+            }
+
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+                // TODO Auto-generated method stub
+                System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " released" );
+                
+            }
+
+            @Override
+            public void keyTyped(KeyEvent arg0) {
+                // TODO Auto-generated method stub
+                System.err.println(arg0.getKeyCode() + " /" + String.valueOf(arg0.getKeyChar()) + " Typed" );
+                if (String.valueOf(arg0.getKeyChar()).equals("a")){
+                    Edger();
+                    Refresh();
+                }
+                
+            }
+   
+        });
+        
+//-------------
+        Transformer<String,Paint> vertexColor = new Transformer<String,Paint>() {
+            public Paint transform(String i) {
+                if(i == "1") return Color.GREEN;
+                return Color.GREEN;
+            }
+        };
+        Transformer<String,Shape> vertexSize = new Transformer<String,Shape>(){
+            public Shape transform(String i){
+                Ellipse2D circle = new Ellipse2D.Double(-10, -10, 20, 20);
+                i="3";
+                // in this case, the vertex is twice as large
+                if(i == "2") return AffineTransform.getScaleInstance(2, 2).createTransformedShape(circle);
+                if(i == "3") return AffineTransform.getScaleInstance(0.5, 0.5).createTransformedShape(circle);
+                else return circle;
+            }
+        };
+        vv.getRenderContext().setVertexFillPaintTransformer(vertexColor);
+        vv.getRenderContext().setVertexShapeTransformer(vertexSize);
+//-------------
         
         
         JFrame frame = new JFrame("Interactive Graph View 1");
@@ -127,28 +194,6 @@ public class JungGraph extends javax.swing.JApplet{
     
     
     public void Create(){
-
-        /*
-        svg.addVertex("bill");
-        svg.addVertex("pan");
-        svg.addVertex("ante");
-        svg.addEdge("Edge-D", "bill","pan");
-        svg.addEdge("pou", "pan", "ante", EdgeType.DIRECTED);
-        //svg.addEdge("Edge-E", 2,3, EdgeType.DIRECTED);
-        //svg.addEdge("Edge-F", 3, 2, EdgeType.DIRECTED);
-        //svg.addEdge("Edge-P", 2,3); // A parallel edge
-        //System.out.println("The graph g2 = " + svg.toString());        
-        
-        /*
-        svg.addVertex((Integer)1);
-        svg.addVertex((Integer)2);
-        svg.addVertex((Integer)3);
-        svg.addEdge("Edge-A", 1,3);
-        svg.addEdge("Edge-B", 2,3, EdgeType.DIRECTED);
-        svg.addEdge("Edge-C", 3, 2, EdgeType.DIRECTED);
-        svg.addEdge("Edge-P", 2,3); // A parallel edge
-        System.out.println("The graph g2 = " + svg.toString()); 
-        */
         
         PerformanceUtil performance = new PerformanceUtil("ms");
         String userId = "tom";
@@ -195,7 +240,7 @@ public class JungGraph extends javax.swing.JApplet{
             
             label = order.toString() + " )  " + method + " <<AT>> " + MiscUtil.toDate(acl.getRequestDate().longValue());
             
-            if (MiscUtil.toDate(acl.getRequestDate().longValue()).getDay()>startingDay+1){
+            if (MiscUtil.toDate(acl.getRequestDate().longValue()).getDay()>startingDay+ numberOfDays - 1){
                 if (setup == false){
                     setup = true;
                     startingDay = MiscUtil.toDate(acl.getRequestDate().longValue()).getDay();
@@ -203,8 +248,19 @@ public class JungGraph extends javax.swing.JApplet{
                     break;
             }
             
-            
-            edge = order.toString() + ") " + method + "  " + MiscUtil.toDate(acl.getRequestDate().longValue());
+            if (!(keepParameters)){
+                if(leftNode.indexOf("?")>0){
+                    leftNode = leftNode.substring(0, leftNode.indexOf("?"));
+                }
+                if(rightNode.indexOf("?")>0){
+                    rightNode = rightNode.substring(0, rightNode.indexOf("?"));
+                }}
+              
+            if (showLinkLabels){
+                edge = order.toString() + ") " + method + "  " + MiscUtil.toDate(acl.getRequestDate().longValue());
+            }else{
+                edge = order.toString();
+            }
             
             svg.addVertex(leftNode);
             svg.addVertex(rightNode);
@@ -213,26 +269,9 @@ public class JungGraph extends javax.swing.JApplet{
             svg.addEdge(edge, leftNode, rightNode);
             
             try {
-                
-                layout.initialize();
-
-                Relaxer relaxer = new VisRunner((IterativeContext)layout);
-                relaxer.stop();
-                relaxer.prerelax();
-                StaticLayout<String,String> staticLayout =
-                    new StaticLayout<String,String>(svg, layout);
-                LayoutTransition<String,String> lt =
-                    new LayoutTransition<String,String>(vv, vv.getGraphLayout(),
-                            staticLayout);
-                Animator animator = new Animator(lt);
-                animator.start();
-//              vv.getRenderContext().getMultiLayerTransformer().setToIdentity();
-                vv.repaint();
-                
-                Thread.sleep(500);
-                
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
+                System.out.println("hi");
+                //Thread.sleep(700);
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
             layout.reset();
@@ -262,6 +301,35 @@ public class JungGraph extends javax.swing.JApplet{
     }
     
     
+    public void Edger(){
+        for (String vert:svg.getVertices()){
+            for (String neighbor :svg.getNeighbors(vert)){
+                
+                //hypothesis to test if findEdgeSet is directional
+                //Answer: it is not directional
+                /*
+                Collection<String> set1 = svg.findEdgeSet(vert, neighbor);
+                Collection<String> set2 = svg.findEdgeSet(neighbor, vert);
+                if (set1.containsAll(set2) && !(set2.isEmpty())){
+                    System.out.println("find edge set is not directional");
+                }
+                
+                if (set1.size()==set2.size()){
+                    System.out.println("the are the same size");
+                }
+                */
+                Integer numberOfEdges = svg.findEdgeSet(vert, neighbor).size();
+                String removedEdges = "";
+                for (String edge : svg.findEdgeSet(vert, neighbor)){
+                    svg.removeEdge(edge);
+                    removedEdges += "/" + edge;
+                }
+                if (numberOfEdges!=0){
+                    svg.addEdge( removedEdges +"???" + numberOfEdges.toString(), vert, neighbor);
+                }
+            }
+        }
+    }
     
     
     class MyNode {
@@ -324,6 +392,5 @@ public class JungGraph extends javax.swing.JApplet{
         }
         
     }
-   
 
 }

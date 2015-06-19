@@ -45,8 +45,15 @@ public class Playground {
         Scanner keyboard = new Scanner(System.in);
         while(!foundFlag){
             System.out.print("perform database request for userId: ");
-            userId = keyboard.next();
+            
 
+            //for testing purposes
+            // TODO remove this in production
+            userId = "tom";
+            // TODO and use this
+            //userId = keyboard.next();
+            
+            
             for (String user : userIds){
                 if (user.equals(userId)){
                     foundFlag=true;
@@ -236,6 +243,9 @@ public class Playground {
                     currentAcL = acl2.get((i1*groupSize)+j);
                     System.out.println(currentAcL.getRequestDate().toString() + " - " + toDate(currentAcL.getRequestDate().longValue()) 
                             + " /// " + currentAcL.toString());
+                    
+                    //performs a separate query to fetch the acurate timestamp from the NavajoLog
+                    System.out.println(currentAcL.getNavajoLog().getTimestamp());
                 }catch( Throwable e){
                     System.out.println(e);
                     break;   

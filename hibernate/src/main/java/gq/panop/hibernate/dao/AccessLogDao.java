@@ -62,7 +62,9 @@ public class AccessLogDao {
 	public List<AccessLog> getAccessLogs_fromNavajoLog_fromAuditLog(String userId){
 	    //NOT WORKING queryString VV
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
+
 	    String queryString = "SELECT distinct acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null'";
+	    //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);
 	    
@@ -70,6 +72,27 @@ public class AccessLogDao {
 	    return accessLogs;
 	}
 	
+	/*
+	public Object<AccessLog,NavajoLog> getAccessLogs_AND_NavajoLogs_fromNavajoLog_fromAuditLog(String userId){
+	    //NOT WORKING queryString VV
+	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
+
+	    String queryString = "SELECT distinct acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null'";
+	    //String queryString = "SELECT distinct acl, njl. FROM AccessLog acl, NavajoLog njl WHERE njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
+	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+	    query.setString("userId", userId);
+
+	    List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(query);
+	    return accessLogs;
+	}
 	
-	
+	   class myType{
+	       private timestamp;
+	       
+	   }
+	  
+	  */
+
 }
+
+
