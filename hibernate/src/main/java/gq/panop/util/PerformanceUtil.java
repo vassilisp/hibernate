@@ -61,6 +61,11 @@ public class PerformanceUtil {
 			return System.currentTimeMillis();
 		}
 	}
+	
+    public void separate(){
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        System.out.println("");
+    }
 
 }
 

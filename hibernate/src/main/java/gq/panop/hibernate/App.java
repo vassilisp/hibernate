@@ -18,7 +18,7 @@ public class App
 
         
         
-        
+        IntervalFreq.generate();
         
         //Playground.Start();
         
@@ -33,6 +33,7 @@ public class App
         //igv.start();
         
         HibernateUtil.getSessionFactory().close();
+        
         
         String test = "GET /fecru/static/mzfr4p/2static/style/jquery/theme/concat.commonScriptAndStyleIncludes.4a8d31baefacdc3a65a699257c20ccaf.cache.css HTTP/1.1";
         

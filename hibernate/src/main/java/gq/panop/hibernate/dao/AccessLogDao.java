@@ -92,6 +92,18 @@ public class AccessLogDao {
 	   }
 	  
 	  */
+	
+	
+	   public List<Integer> getOrderedUserTimestamps(String userId){
+
+	        String queryString = "SELECT distinct acl.requestDate FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' order by acl.requestDate";
+	        //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
+	        Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+	        query.setString("userId", userId);
+	        
+	        List<Integer> accessLogs = HibernateUtil.performSimpleQuery(query);
+	        return accessLogs;
+	    }
 
 }
 
