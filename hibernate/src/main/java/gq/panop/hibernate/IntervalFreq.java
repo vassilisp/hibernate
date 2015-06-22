@@ -5,6 +5,7 @@ import gq.panop.hibernate.dao.AuditLogDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.util.PerformanceUtil;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,16 +37,18 @@ public class IntervalFreq {
         
             System.out.println(user);
             performance.Tick();
-            List<Integer> timestamps = accessLogDao.getOrderedUserTimestamps(user);
+            List<BigInteger> timestamps = accessLogDao.getOrderedUserTimestamps(user);
             performance.Tock("retrieving AccessLog timestamps for a specific userId by first finding the clientIds from the AuditLog and then the"
                     + " transactionIds performed by those clientIds from NavajoLog");
             System.out.println(timestamps.size());
             
             Integer interval = -1;
             Integer previousTimestamp = -1; //not set yet
+            Integer timestamp;
             
             Integer count = 0;
-            for (Integer timestamp:timestamps){
+            for (BigInteger BItimestamp:timestamps){
+                timestamp = BItimestamp.intValue();
                 if (previousTimestamp != -1){
                     interval = timestamp - previousTimestamp;    
                 }
