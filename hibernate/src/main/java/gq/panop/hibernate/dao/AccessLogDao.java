@@ -14,15 +14,15 @@ import org.hibernate.Transaction;
 public class AccessLogDao {
 
 	public AccessLog getAccessLog(String transactionId){
-		AccessLog accessLog = null;
-		
+	    
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	    
 		String queryString = "From AccessLog where transactionId = :transactionId";
-		
-    	Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+    	Query query = session.createQuery(queryString);
     	query.setString("transactionId", transactionId);
     	
-    	accessLog = (AccessLog) HibernateUtil.performUniqueQuery(query);
-		return accessLog ;
+
+		return (AccessLog) HibernateUtil.performUniqueStatelessQuery(session, query);
 	}
 	
 	   public AccessLog getAccessLog2(String transactionId){
@@ -64,15 +64,19 @@ public class AccessLogDao {
 	
 	public List<AccessLog> getAccessLogs_fromAuditLog(String userId){
 		
-		//String queryString = "FROM AccessLog WHERE transactionId IN ( SELECT transactionId FROM AuditLog WHERE userId = :userId )";
+	    
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+		
+	    //String queryString = "FROM AccessLog WHERE transactionId IN ( SELECT transactionId FROM AuditLog WHERE userId = :userId )";
 		//old optimized//  String queryString = "Select acl FROM AccessLog acl JOIN acl.auditLog WHERE acl.transactionId=acl.auditLog.transactionId ANDacl.auditLog.userId =:userId";
 		//String queryString = "SELECT acl FROM AccessLog acl JOIN acl.auditLog WHERE acl.auditLog.userId =:userId";
-       String queryString = "SELECT acl FROM AccessLog acl WHERE acl.auditLog.userId =:userId";
+	    
+	    String queryString = "SELECT acl FROM AccessLog acl WHERE acl.auditLog.userId =:userId";
 
-		Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+		Query query = session.createQuery(queryString);
 		query.setString("userId", userId);
 		
-		List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(query);
+		List<AccessLog> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
 		return accessLogs;
 	}
 	
@@ -84,13 +88,16 @@ public class AccessLogDao {
 	    Query query = session.createQuery(queryString);
 		query.setString("clientId", clientId);
 		
-		List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(session, query);
+		List<AccessLog> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
 	        
 		return accessLogs;
 	}
 	
 
 	public List<AccessLog> getAccessLogs_fromNavajoLog_fromAuditLog(String userId){
+	    
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	    
 	    //NOT WORKING queryString VV
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
 
@@ -99,7 +106,7 @@ public class AccessLogDao {
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);
 	    
-	    List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(query);
+	    List<AccessLog> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
 	    return accessLogs;
 	}
 	
@@ -127,12 +134,14 @@ public class AccessLogDao {
 	
 	   public List<BigInteger> getOrderedUserTimestamps(String userId){
 
+	       StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	       
 	        String queryString = "SELECT acl.requestDate FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
 	        //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
-	        Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+	        Query query = session.createQuery(queryString);
 	        query.setString("userId", userId);
 	        
-	        List<BigInteger> accessLogs = HibernateUtil.performSimpleQuery(query);
+	        List<BigInteger> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
 	        return accessLogs;
 	    }
 

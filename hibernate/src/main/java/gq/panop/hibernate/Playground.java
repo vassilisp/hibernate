@@ -84,7 +84,7 @@ public class Playground {
 
         
         performance.Tick();
-        List<String> transactionIds = dao.getTransactionIds2(userId);
+        List<String> transactionIds = dao.getTransactionIds(userId);
         for (String transactionId : transactionIds){
             System.out.println(transactionId);
         }

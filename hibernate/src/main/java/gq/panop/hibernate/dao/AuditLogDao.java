@@ -87,18 +87,6 @@ public class AuditLogDao {
     	}
     	return transactionIds;
 	}
-		
-	public List<String> getTransactionIds2(String userId){
-    	
-    	List<String> transactionIds = new ArrayList<String>();
-    	
-    	String queryString = "SELECT al.transactionId FROM AuditLog al WHERE al.userId = :userId";
-    	Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
-    	query.setString("userId", userId);
-    	transactionIds = HibernateUtil.performSimpleQuery(query);
- 
-    	return transactionIds;
-	}
 	
 	public List<String> getAllUsers(){
 		

@@ -13,11 +13,6 @@ import org.hibernate.Transaction;
 public class NavajoLogDao {
     
 
-    public List<String> getTransactionIds2(String clientId){
-        String queryString = "Select njl.transactionId FROM NavajoLog njl where njl.clientId = :clientId";
-        
-
-    }
 
     public List<String> getTransactionIds(String clientId){
         StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();

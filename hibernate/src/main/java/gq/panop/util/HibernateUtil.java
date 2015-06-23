@@ -84,6 +84,8 @@ public class HibernateUtil {
 	        
 	        Object result = null;
 	        
+	        Query query = session.createQuery(queryString);
+	        
 	        try{
 	            tx = session.beginTransaction();
 	            result = query.uniqueResult();
