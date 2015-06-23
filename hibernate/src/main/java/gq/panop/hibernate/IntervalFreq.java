@@ -43,18 +43,18 @@ public class IntervalFreq {
             System.out.println(timestamps.size());
             
             Integer interval = -1;
-            Integer previousTimestamp = -1; //not set yet
-            Integer timestamp;
+            Long previousTimestamp = null; //not set yet
+            Long timestamp;
             
             Integer count = 0;
             for (BigInteger BItimestamp:timestamps){
-                timestamp = BItimestamp.intValue();
-                if (previousTimestamp != -1){
-                    interval = timestamp - previousTimestamp;    
+                timestamp = BItimestamp.longValueExact();
+                if (previousTimestamp != null){
+                    interval = (int) (timestamp - previousTimestamp);    
                 }
                 
                 count = intervals.get(interval);
-                if (count==0) {
+                if (count==null) {
                     intervals.put(interval, 0);
                 }else{
                     intervals.put(interval, intervals.get(interval)+1);

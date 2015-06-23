@@ -5,6 +5,7 @@ import java.util.List;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -36,8 +37,8 @@ public class HibernateUtil {
     	return sessionFactory;
     }
     
-	public static <T> List<T> performSimpleQuery(Query query){
-		Session session = HibernateUtil.getSessionFactory().openSession();
+	public static <T> List<T> performSimpleStatelessQuery(StatelessSession session, Query query){
+
 		Transaction tx = null;
 		
 		List<T> result = null;
@@ -45,19 +46,19 @@ public class HibernateUtil {
 		try{
 			tx = session.beginTransaction();
 			result = query.list();
+			tx.commit();
 		}catch (Throwable ex){
 			if (tx!=null) tx.rollback();
 			ex.printStackTrace();
 		}finally {
-			session.flush();
+			//session.flush();
 			session.close();
 		}
 		
 		return result;
 		
 	}
-	public static Object performUniqueQuery(Query query){
-		Session session = HibernateUtil.getSessionFactory().openSession();
+	public static Object performUniqueStatelessQuery(StatelessSession session, Query query){
 		Transaction tx = null;
 		
 		Object result = null;
@@ -69,11 +70,34 @@ public class HibernateUtil {
 			if (tx!=null) tx.rollback();
 			ex.printStackTrace();
 		}finally {
-			session.flush();
+			//session.flush();
 			session.close();
 		}
 		
 		return result;
 		
 	}
+	
+	   public static Object performUniqueStringSearch(String queryString){
+	        StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	        Transaction tx = null;
+	        
+	        Object result = null;
+	        
+	        try{
+	            tx = session.beginTransaction();
+	            result = query.uniqueResult();
+	            tx.commit();
+	        }catch (Throwable ex){
+	            if (tx!=null) tx.rollback();
+	            ex.printStackTrace();
+	        }finally {
+	            //session.flush();
+	            session.close();
+	        }
+	        
+	        return result;
+	        
+	    }
+	
 }

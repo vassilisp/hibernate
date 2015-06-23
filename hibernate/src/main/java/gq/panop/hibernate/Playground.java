@@ -7,6 +7,7 @@ import gq.panop.hibernate.model.AuditLog;
 import gq.panop.util.HibernateUtil;
 import gq.panop.util.PerformanceUtil;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -217,8 +218,17 @@ public class Playground {
         separate();
         */
         
+        
+        List<AccessLog> aa1 = accessLogDao.getAccessLogs_fromNavajoLog_fromAuditLog(userId);
+        List<BigInteger> aa2 = accessLogDao.getOrderedUserTimestamps(userId);
+        System.out.println("query 1 size: " +  aa1.size() + " ... query 2 size: " + aa2.size());
+        
+        
+        
+        
         performance.Tick();
         List<AccessLog> acl2 = accessLogDao.getAccessLogs_fromNavajoLog_fromAuditLog(userId);
+
         performance.Tock("retrieving AccessLogs for a specific userId by first finding the clientIds from the AuditLog and then the"
                 + " transactionIds performed by those clientIds from NavajoLog");System.out.println(acl2.size());
                 

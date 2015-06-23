@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 
 public class AuditLogDao {
@@ -101,16 +102,18 @@ public class AuditLogDao {
 	
 	public List<String> getAllUsers(){
 		
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
 		String queryString = "SELECT DISTINCT al.userId FROM AuditLog AS al";
-		Query query =  HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
-		return HibernateUtil.performSimpleQuery(query);
+		Query query =  session.createQuery(queryString);
+		return HibernateUtil.performSimpleStatelessQuery(session, query);
 	}
 	
 	public List<String> getClientIds(String userId){
 	    
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
 	    String queryString = "SELECT DISTINCT al.clientId FROM AuditLog al WHERE al.userId=:userId";
-	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
+	    Query query = session.createQuery(queryString);
 	    query.setString("userId", userId);
-	    return HibernateUtil.performSimpleQuery(query);
+	    return HibernateUtil.performSimpleStatelessQuery(session, query);
 	}
 }

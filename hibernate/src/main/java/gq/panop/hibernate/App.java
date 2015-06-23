@@ -17,17 +17,21 @@ public class App
     public static void main( String[] args ){
 
         
+        SessionTraversal st = new SessionTraversal();
+        st.start();
+        
+        Playground.Start();        
         
         IntervalFreq.generate();
         
-        //Playground.Start();
+
         
         //Graphs.Start();
         
         //AnimatingAddNodeDemo.play();
        
-        JungGraph jg = new JungGraph();
-        jg.Start();
+        ///JungGraph jg = new JungGraph();
+        //jg.Start();
         
         //InteractiveGraphView1 igv = new InteractiveGraphView1();
         //igv.start();
