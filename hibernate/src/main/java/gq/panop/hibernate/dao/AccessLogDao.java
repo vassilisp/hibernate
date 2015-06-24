@@ -1,9 +1,11 @@
 package gq.panop.hibernate.dao;
 
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.HibernateUtil;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Query;
@@ -133,7 +135,8 @@ public class AccessLogDao {
 	
 	
 	   public List<BigInteger> getOrderedUserTimestamps(String userId){
-
+	       //Dont like this one-- Avoid it
+	       
 	       StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
 	       
 	        String queryString = "SELECT distinct acl.requestDate, acl.transactionId FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
@@ -145,16 +148,19 @@ public class AccessLogDao {
 	        return accessLogs;
 	    }
 
-       public List<Object[]> getOrderedClientIdTimestamps(String clientId){
+       public List<TransactionId_Timestamp> getOrderedACLClientIdNJLTimestamps(String clientId){
 
            StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
            
-            String queryString = "SELECT acl.navajoLog.timestamp, acl.transactionId FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+            String queryString = "SELECT acl.transactionId, acl.navajoLog.timestamp FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
             Query query = session.createQuery(queryString);
             query.setString("clientId", clientId);
             
-            List<Object[]> timestamps = HibernateUtil.performSimpleStatelessQuery(session, query);
-            return timestamps;
+            List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);
+            
+            List<TransactionId_Timestamp> tT = new ArrayList<TransactionId_Timestamp>();
+            tmp.forEach(n -> tT.add(new TransactionId_Timestamp(n[0].toString(), (Long)((BigInteger)n[1]).longValue())));
+            return tT;
         }
 }
 

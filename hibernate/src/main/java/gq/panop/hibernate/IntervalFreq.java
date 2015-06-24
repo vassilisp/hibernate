@@ -34,7 +34,7 @@ public class IntervalFreq {
         
         //count every interval << interval, how many times >>
         HashMap<Integer,Integer> intervals = new HashMap<Integer,Integer>();
-        List<Object[]> timestamps = null;
+
 
 
         for (String userId : userIds){
@@ -47,10 +47,23 @@ public class IntervalFreq {
             for(String clientId:clientIds){
                 List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
                 
-                timestamps = aclDao.getOrderedClientIdTimestamps(clientId);
                 
-                List<TransactionId_Timestamp> TransTime = njlDao.getTransactionIdsANDTimestamps(clientId);
-                for(TransactionId_Timestamp tT:TransTime){
+                //Get AccessLog transactionId entries and NavajoLog timestamps for those entries
+                /*
+                 *Effectively it is the same as the one below but the one below performs only a simple select
+                 *Query while this one joins ACL and NJL
+                 *Also entries with missing details from the ACL are not selected with this one
+                 */
+                List<TransactionId_Timestamp> timestamps = aclDao.getOrderedACLClientIdNJLTimestamps(clientId);
+                
+                //Get NavajoLog transactionId and timestamps
+                List<TransactionId_Timestamp> transTime = njlDao.getTransactionIdsANDTimestamps(clientId);
+                
+                if (timestamps.size()>0 && transTime.size()>0 && timestamps.size() != transTime.size()){
+                    System.err.println("WARNING - Different size of tables returned: IntervalFreq.java");
+                }
+                
+                for(TransactionId_Timestamp tT:transTime){
                     System.out.println(tT.toString());
                     
                     AccessLog acl = aclDao.getAccessLog(tT.getTransactionId());
@@ -60,20 +73,20 @@ public class IntervalFreq {
                 
                 System.out.println(accessLogs.size() + " .//. " + timestamps.size());
                 BigInteger val1=null;
-                BigInteger val2=null;
+                Long val2=null;
                 Integer counter1 = 0;
                 Integer counter2 = 0;
                 for (AccessLog acl:accessLogs){
                     counter1++;
                     val1 = acl.getRequestDate();
                     Boolean found = false;
-                    for(Object[] item:timestamps){
+                    for(TransactionId_Timestamp item:timestamps){
                         counter2++;
-                        BigInteger firstValue = (BigInteger) item[0];
+                        Long firstValue = item.getTimestamp();
                         val2 = firstValue;
                         
                         
-                        if (val1.equals(val2)){
+                        if (val2.equals(val1.longValueExact())){
                             found = true;
                             if(counter1>=counter2){
                                 System.out.println("At the same place");
