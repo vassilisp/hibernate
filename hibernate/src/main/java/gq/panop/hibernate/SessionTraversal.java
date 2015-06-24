@@ -33,38 +33,36 @@ public class SessionTraversal {
             /*a clientId usually is similar to a daily session
              *a user can have multiple daily sessions active
              */
+            
+            performance.Tick();
             for(String clientId:clientIds){
-                System.out.println("traversing: " + clientId);
-                
-                
-                performance.Tick();
+                //System.out.println("traversing: " + clientId);
+
                 List<AccessLog> acl2 = aclDao.getAccessLogs_fromNavajoLog(clientId);
-                performance.Tock("TEST2");
+                
+                for(AccessLog item:acl2){
+                    //System.out.println(item.toString());
+                }
+            }
+            performance.Tock("TEST1");
                 
                 
+                
+            performance.Tick();
+            for(String clientId:clientIds){
+                                
                 //transactionIds contain all transactions for a give session
                 List<String> transactionIds = njlDao.getTransactionIds(clientId);
                 
-                performance.Tick();
                 if(transactionIds.size()>0){
                     List<AccessLog> acl = aclDao.getAccessLogs(transactionIds);
-                    performance.Tock("test1");
-                    
-                    System.out.println(acl2.contains(acl));
-                    System.out.println(acl2.size() +" ---" + acl.size());
                     
                     for(AccessLog item:acl){
                         //System.out.println(item.toString());
-                    }
+                    }   
                 }
-
-                
-
-                
-                
-                
             }
-
+            performance.Tock("TEST2");
 
         }
         

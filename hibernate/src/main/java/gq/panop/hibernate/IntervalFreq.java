@@ -2,7 +2,9 @@ package gq.panop.hibernate;
 
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.dao.AuditLogDao;
+import gq.panop.hibernate.dao.NavajoLogDao;
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.PerformanceUtil;
 
 import java.math.BigInteger;
@@ -21,23 +23,75 @@ public class IntervalFreq {
         
         
         PerformanceUtil performance = new PerformanceUtil("ms");
-        AuditLogDao dao = new AuditLogDao();
+        AuditLogDao adlDao = new AuditLogDao();
+        AccessLogDao aclDao = new AccessLogDao();
+        NavajoLogDao njlDao = new NavajoLogDao();
         
-        AccessLogDao accessLogDao = new AccessLogDao();
         performance.Tick();
-        List<String> userIds = dao.getAllUsers();
+        List<String> userIds = adlDao.getAllUsers();
         performance.Tock();
-        
-        //ArrayList<Integer> intervals = new ArrayList<Integer>();
+
         
         //count every interval << interval, how many times >>
         HashMap<Integer,Integer> intervals = new HashMap<Integer,Integer>();
+        List<Object[]> timestamps = null;
+
+
+        for (String userId : userIds){
         
-        for (String user : userIds){
-        
-            System.out.println(user);
+            System.out.println(userId);
             performance.Tick();
-            List<BigInteger> timestamps = accessLogDao.getOrderedUserTimestamps(user);
+            
+            List<String> clientIds = adlDao.getClientIds(userId);
+            
+            for(String clientId:clientIds){
+                List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
+                
+                timestamps = aclDao.getOrderedClientIdTimestamps(clientId);
+                
+                List<TransactionId_Timestamp> TransTime = njlDao.getTransactionIdsANDTimestamps(clientId);
+                for(TransactionId_Timestamp tT:TransTime){
+                    System.out.println(tT.toString());
+                    
+                    AccessLog acl = aclDao.getAccessLog(tT.getTransactionId());
+                    System.out.println(acl.getReferer() + ", " + acl.getRequestedResource() + ", " + acl.getClientIP());
+                }
+                
+                
+                System.out.println(accessLogs.size() + " .//. " + timestamps.size());
+                BigInteger val1=null;
+                BigInteger val2=null;
+                Integer counter1 = 0;
+                Integer counter2 = 0;
+                for (AccessLog acl:accessLogs){
+                    counter1++;
+                    val1 = acl.getRequestDate();
+                    Boolean found = false;
+                    for(Object[] item:timestamps){
+                        counter2++;
+                        BigInteger firstValue = (BigInteger) item[0];
+                        val2 = firstValue;
+                        
+                        
+                        if (val1.equals(val2)){
+                            found = true;
+                            if(counter1>=counter2){
+                                System.out.println("At the same place");
+                            }
+                            break;
+                        }
+
+                    }
+                    
+                    counter2=0;
+                    System.out.println(found);
+
+                }counter1=0;
+                
+            }
+        }
+            
+            /*
             performance.Tock("retrieving AccessLog timestamps for a specific userId by first finding the clientIds from the AuditLog and then the"
                     + " transactionIds performed by those clientIds from NavajoLog");
             System.out.println(timestamps.size());
@@ -65,6 +119,7 @@ public class IntervalFreq {
            
 
         }
+        */
         
         System.out.println(intervals.size());
         

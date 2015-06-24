@@ -136,7 +136,7 @@ public class AccessLogDao {
 
 	       StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
 	       
-	        String queryString = "SELECT acl.requestDate FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
+	        String queryString = "SELECT distinct acl.requestDate, acl.transactionId FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
 	        //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
 	        Query query = session.createQuery(queryString);
 	        query.setString("userId", userId);
@@ -145,6 +145,17 @@ public class AccessLogDao {
 	        return accessLogs;
 	    }
 
+       public List<Object[]> getOrderedClientIdTimestamps(String clientId){
+
+           StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+           
+            String queryString = "SELECT acl.navajoLog.timestamp, acl.transactionId FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+            Query query = session.createQuery(queryString);
+            query.setString("clientId", clientId);
+            
+            List<Object[]> timestamps = HibernateUtil.performSimpleStatelessQuery(session, query);
+            return timestamps;
+        }
 }
 
 

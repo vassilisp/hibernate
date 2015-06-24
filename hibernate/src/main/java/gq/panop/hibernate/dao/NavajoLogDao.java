@@ -1,7 +1,9 @@
 package gq.panop.hibernate.dao;
 
+import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.HibernateUtil;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,15 +40,15 @@ public class NavajoLogDao {
         return transactionIds;
     }
     
-    public List<objmy> getTransactionIdsANDTimestamps(String clientId){
+    public List<TransactionId_Timestamp> getTransactionIdsANDTimestamps(String clientId){
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = null;
         
-        List<objmy> wrapper = new ArrayList<objmy>();
+        List<Object[]> wrapper = new ArrayList<Object[]>();
         
         try{
             tx = session.beginTransaction();
-            String queryString = "Select njl.transactionId, njl.timestamp FROM NavajoLog njl where njl.clientId = :clientId";
+            String queryString = "Select njl.transactionId, njl.timestamp FROM NavajoLog njl where njl.clientId = :clientId GROUP BY njl.transactionId ORDER BY njl.timestamp";
             Query query = session.createQuery(queryString);
             query.setString("clientId", clientId);
             
@@ -58,47 +60,18 @@ public class NavajoLogDao {
             session.flush();
             session.close();
         }
-        return wrapper;
+        
+        List<TransactionId_Timestamp> tT = new ArrayList<TransactionId_Timestamp>();
+        
+        wrapper.forEach(n -> tT.add(new TransactionId_Timestamp(n[0].toString(), (Long)((BigInteger)n[1]).longValue())));
+        /*
+        for (Object[] tmp:wrapper){
+            TransactionId_Timestamp tTobject = new TransactionId_Timestamp(tmp[0].toString(), (Long)((BigInteger)tmp[1]).longValue()); 
+            tT.add(tTobject);
+        }
+        */
+        return tT;
     }
     
-    class objmy{
-        private String transactionId=null;
-        private String timestamp=null;
-        
-        
-        public objmy(String transactionId, String timestamp){
-            this.transactionId = transactionId;
-            this.timestamp = timestamp;
-        }
-        /**
-         * @return the transactionId
-         */
-        public String getTransactionId() {
-            return transactionId;
-        }
-
-        /**
-         * @param transactionId the transactionId to set
-         */
-        public void setTransactionId(String transactionId) {
-            this.transactionId = transactionId;
-        }
-
-        /**
-         * @return the timestamp
-         */
-        public String getTimestamp() {
-            return timestamp;
-        }
-
-        /**
-         * @param timestamp the timestamp to set
-         */
-        public void setTimestamp(String timestamp) {
-            this.timestamp = timestamp;
-        }
-        
-        
-    }
     
 }

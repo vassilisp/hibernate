@@ -18,9 +18,9 @@ public class App
 
         
         SessionTraversal st = new SessionTraversal();
-        st.start();
+        //st.start();
         
-        Playground.Start();        
+        //Playground.Start();        
         
         IntervalFreq.generate();
         
