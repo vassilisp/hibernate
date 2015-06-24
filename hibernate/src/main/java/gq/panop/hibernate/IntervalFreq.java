@@ -4,6 +4,8 @@ import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.dao.AuditLogDao;
 import gq.panop.hibernate.dao.NavajoLogDao;
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.model.NavajoLog;
+import gq.panop.hibernate.mytypes.ResultingSetfromComplex;
 import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.PerformanceUtil;
 
@@ -33,7 +35,7 @@ public class IntervalFreq {
 
         
         //count every interval << interval, how many times >>
-        HashMap<Integer,Integer> intervals = new HashMap<Integer,Integer>();
+        HashMap<Long,Integer> intervals = new HashMap<Long,Integer>();
 
 
 
@@ -45,8 +47,6 @@ public class IntervalFreq {
             List<String> clientIds = adlDao.getClientIds(userId);
             
             for(String clientId:clientIds){
-                List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
-                
                 
                 //Get AccessLog transactionId entries and NavajoLog timestamps for those entries
                 /*
@@ -54,11 +54,12 @@ public class IntervalFreq {
                  *Query while this one joins ACL and NJL
                  *Also entries with missing details from the ACL are not selected with this one
                  */
-                List<TransactionId_Timestamp> timestamps = aclDao.getOrderedACLClientIdNJLTimestamps(clientId);
+                //List<TransactionId_Timestamp> timestamps = aclDao.getOrderedACLClientIdNJLTimestamps(clientId);
                 
                 //Get NavajoLog transactionId and timestamps
-                List<TransactionId_Timestamp> transTime = njlDao.getTransactionIdsANDTimestamps(clientId);
+                //List<TransactionId_Timestamp> transTime = njlDao.getTransactionIdsANDTimestamps(clientId);
                 
+                /* Tests for the above
                 if (timestamps.size()>0 && transTime.size()>0 && timestamps.size() != transTime.size()){
                     System.err.println("WARNING - Different size of tables returned: IntervalFreq.java");
                 }
@@ -69,9 +70,9 @@ public class IntervalFreq {
                     AccessLog acl = aclDao.getAccessLog(tT.getTransactionId());
                     System.out.println(acl.getReferer() + ", " + acl.getRequestedResource() + ", " + acl.getClientIP());
                 }
+                */
                 
-                
-                System.out.println(accessLogs.size() + " .//. " + timestamps.size());
+                /*More tests - delete later 
                 BigInteger val1=null;
                 Long val2=null;
                 Integer counter1 = 0;
@@ -100,49 +101,49 @@ public class IntervalFreq {
                     System.out.println(found);
 
                 }counter1=0;
+                */
                 
-            }
-        }
-            
-            /*
-            performance.Tock("retrieving AccessLog timestamps for a specific userId by first finding the clientIds from the AuditLog and then the"
-                    + " transactionIds performed by those clientIds from NavajoLog");
-            System.out.println(timestamps.size());
-            
-            Integer interval = -1;
-            Long previousTimestamp = null; //not set yet
-            Long timestamp;
-            
-            Integer count = 0;
-            for (BigInteger BItimestamp:timestamps){
-                timestamp = BItimestamp.longValueExact();
-                if (previousTimestamp != null){
-                    interval = (int) (timestamp - previousTimestamp);    
+                List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
+                
+                Long interval = -1L;
+                Long previousTimestamp = null; //not set yet
+                Long timestamp = 0L;
+
+                Integer count = 0;
+                for (AccessLog acl : accessLogs){
+                    
+                    try{
+                        timestamp = acl.getNavajoLog().getTimestamp().longValue();
+                    }catch(Throwable e){
+                        System.err.println(e);
+                    }
+                    if (previousTimestamp != null){
+                        interval = timestamp - previousTimestamp;    
+                    }
+
+                    count = intervals.get(interval);
+                    if (count==null) {
+                        intervals.put(interval, 1);
+                    }else{
+                        intervals.put(interval, intervals.get(interval)+1);
+                    }
+
+                    previousTimestamp = timestamp;
                 }
-                
-                count = intervals.get(interval);
-                if (count==null) {
-                    intervals.put(interval, 0);
-                }else{
-                    intervals.put(interval, intervals.get(interval)+1);
-                }
-                
-                previousTimestamp = timestamp;
+
+
             }
-           
+
+            System.out.println(intervals.size());
+
+            for (Long key: intervals.keySet()){
+                System.out.println(key + ": " + intervals.get(key));
+
+            }
+
+
+
 
         }
-        */
-        
-        System.out.println(intervals.size());
-        
-        for (Integer key: intervals.keySet()){
-            System.out.println(intervals.get(key));
-            
-        }
-        
-        
-        
-        
     }
 }

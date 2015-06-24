@@ -58,6 +58,28 @@ public class HibernateUtil {
 		return result;
 		
 	}
+	
+	   public static <T> List<T> performSimpleStatelessQuery(Session session, Query query){
+
+	        Transaction tx = null;
+	        
+	        List<T> result = null;
+	        
+	        try{
+	            tx = session.beginTransaction();
+	            result = query.list();
+	            tx.commit();
+	        }catch (Throwable ex){
+	            if (tx!=null) tx.rollback();
+	            ex.printStackTrace();
+	        }finally {
+	            session.flush();
+	            session.close();
+	        }
+	        
+	        return result;
+	        
+	    }
 	public static Object performUniqueStatelessQuery(StatelessSession session, Query query){
 		Transaction tx = null;
 		

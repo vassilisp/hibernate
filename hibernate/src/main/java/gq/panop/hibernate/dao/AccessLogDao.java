@@ -1,6 +1,7 @@
 package gq.panop.hibernate.dao;
 
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.mytypes.ResultingSetfromComplex;
 import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.HibernateUtil;
 
@@ -85,8 +86,8 @@ public class AccessLogDao {
 	public List<AccessLog> getAccessLogs_fromNavajoLog(String clientId){
 		 
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog WHERE acl.navajoLog.clientId = :clientId";
-	    String queryString = "FROM AccessLog acl WHERE acl.navajoLog.clientId = :clientId";
-	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	    String queryString = "Select acl FROM AccessLog acl WHERE acl.navajoLog.clientId = :clientId";
+	    Session session = HibernateUtil.getSessionFactory().openSession();
 	    Query query = session.createQuery(queryString);
 		query.setString("clientId", clientId);
 		
@@ -103,7 +104,8 @@ public class AccessLogDao {
 	    //NOT WORKING queryString VV
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
 
-	    String queryString = "SELECT acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId";
+	    String queryString = "SELECT acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId "
+	            + "AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId";
 	    //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);
@@ -139,7 +141,8 @@ public class AccessLogDao {
 	       
 	       StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
 	       
-	        String queryString = "SELECT distinct acl.requestDate, acl.transactionId FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
+	        String queryString = "SELECT distinct acl.requestDate, acl.transactionId FROM AccessLog acl "
+	                + "WHERE acl.navajoLog.auditLog.userId = :userId AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId order by acl.requestDate";
 	        //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
 	        Query query = session.createQuery(queryString);
 	        query.setString("userId", userId);
@@ -152,7 +155,8 @@ public class AccessLogDao {
 
            StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
            
-            String queryString = "SELECT acl.transactionId, acl.navajoLog.timestamp FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+            String queryString = "SELECT acl.transactionId, acl.navajoLog.timestamp FROM AccessLog acl "
+                    + "WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
             Query query = session.createQuery(queryString);
             query.setString("clientId", clientId);
             
@@ -162,6 +166,28 @@ public class AccessLogDao {
             tmp.forEach(n -> tT.add(new TransactionId_Timestamp(n[0].toString(), (Long)((BigInteger)n[1]).longValue())));
             return tT;
         }
+       
+       public List<ResultingSetfromComplex> getFullEfficientOrderedSessionTransactions(String clientId){
+           //TODO be carefull -- NOT WORKING DUE TO MISSING/NULL VALUES in the result set
+           StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+           
+            //String queryString = "SELECT acl.transactionId, acl.navajoLog.timestamp, acl.referer, acl.requestedResource, acl.navajoLog.clientId "
+            //        + "FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+           
+           String queryString = "SELECT acl, acl.navajoLog.timestamp, acl.navajoLog.clientId "
+                           + "FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+            Query query = session.createQuery(queryString);
+            query.setString("clientId", clientId);
+            
+            List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);
+            
+            List<ResultingSetfromComplex> rSet = new ArrayList<ResultingSetfromComplex>();
+
+                
+            tmp.forEach(n -> rSet.add(new ResultingSetfromComplex(n[0].toString(), (Long)((BigInteger)n[1]).longValue(), "NOTGIVEN", n[2].toString(),n[3].toString(),n[4].toString() )));
+            return rSet;
+        }
+       
 }
 
 

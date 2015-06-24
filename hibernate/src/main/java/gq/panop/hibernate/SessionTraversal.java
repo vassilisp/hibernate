@@ -41,6 +41,7 @@ public class SessionTraversal {
                 List<AccessLog> acl2 = aclDao.getAccessLogs_fromNavajoLog(clientId);
                 
                 for(AccessLog item:acl2){
+                    item.getNavajoLog().getTimestamp();
                     //System.out.println(item.toString());
                 }
             }

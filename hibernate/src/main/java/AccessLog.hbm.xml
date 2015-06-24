@@ -19,6 +19,6 @@
       <property name="remoteLogname"/>
       <property name="remoteUser"/>
       <one-to-one name="auditLog" class="gq.panop.hibernate.model.AuditLog" constrained="true"></one-to-one>
-      <one-to-one name="navajoLog" class="gq.panop.hibernate.model.NavajoLog" constrained="true" fetch="join"></one-to-one>  
+      <one-to-one name="navajoLog" class="gq.panop.hibernate.model.NavajoLog" constrained="true" lazy="false" fetch="join"></one-to-one>  
    </class>
 </hibernate-mapping>
