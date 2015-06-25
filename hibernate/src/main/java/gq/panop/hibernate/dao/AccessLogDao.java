@@ -1,6 +1,7 @@
 package gq.panop.hibernate.dao;
 
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.ResultingSetfromComplex;
 import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.HibernateUtil;
@@ -86,7 +87,8 @@ public class AccessLogDao {
 	public List<AccessLog> getAccessLogs_fromNavajoLog(String clientId){
 		 
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog WHERE acl.navajoLog.clientId = :clientId";
-	    String queryString = "Select acl FROM AccessLog acl WHERE acl.navajoLog.clientId = :clientId";
+	    //TODO return also the acl.navajoLog.timestamp because now it is fetched with an extra query in the backgroun 
+	    String queryString = "Select acl FROM AccessLog acl WHERE acl.navajoLog.clientId = :clientId ORDER BY acl.navajoLog.timestamp";
 	    Session session = HibernateUtil.getSessionFactory().openSession();
 	    Query query = session.createQuery(queryString);
 		query.setString("clientId", clientId);
@@ -167,7 +169,7 @@ public class AccessLogDao {
             return tT;
         }
        
-       public List<ResultingSetfromComplex> getFullEfficientOrderedSessionTransactions(String clientId){
+       public List<AugmentedACL> getFullEfficientOrderedSessionTransactions(String clientId){
            //TODO be carefull -- NOT WORKING DUE TO MISSING/NULL VALUES in the result set
            StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
            
@@ -181,11 +183,26 @@ public class AccessLogDao {
             
             List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);
             
-            List<ResultingSetfromComplex> rSet = new ArrayList<ResultingSetfromComplex>();
-
+            
+            //List<ResultingSetfromComplex> rSet = new ArrayList<ResultingSetfromComplex>();    
+            //tmp.forEach(n -> rSet.add(new ResultingSetfromComplex(n[0].toString(), (Long)((BigInteger)n[1]).longValue(), "NOTGIVEN", n[2].toString(),n[3].toString(),n[4].toString() )));
+            
+            List<AugmentedACL> aAcl = new ArrayList<AugmentedACL>();
+            for(Object[] obj:tmp){
+                AugmentedACL aclItem = new AugmentedACL();
+                try{
+                aclItem.setAccessLog((AccessLog) obj[0]);
+                aclItem.setTimestamp((Long) obj[1]);
+                aclItem.setClientId((String) obj[2]);
+                }catch(Throwable e){
+                    System.err.println(e);
+                }
                 
-            tmp.forEach(n -> rSet.add(new ResultingSetfromComplex(n[0].toString(), (Long)((BigInteger)n[1]).longValue(), "NOTGIVEN", n[2].toString(),n[3].toString(),n[4].toString() )));
-            return rSet;
+                aAcl.add(aclItem);
+                
+            }
+            
+            return aAcl;
         }
        
 }

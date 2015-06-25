@@ -9,10 +9,14 @@ import gq.panop.hibernate.mytypes.ResultingSetfromComplex;
 import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.PerformanceUtil;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import au.com.bytecode.opencsv.CSVWriter;
 
 public class IntervalFreq {
 
@@ -25,6 +29,7 @@ public class IntervalFreq {
         
         
         PerformanceUtil performance = new PerformanceUtil("ms");
+        PerformanceUtil userPerformance = new PerformanceUtil("ms");
         AuditLogDao adlDao = new AuditLogDao();
         AccessLogDao aclDao = new AccessLogDao();
         NavajoLogDao njlDao = new NavajoLogDao();
@@ -37,15 +42,24 @@ public class IntervalFreq {
         //count every interval << interval, how many times >>
         HashMap<Long,Integer> intervals = new HashMap<Long,Integer>();
 
-
-
+        String filePath = "data" + ((int)(System.currentTimeMillis()/10000)) + ".txt";
+        //CSVWriter writer = null;
+        PrintWriter writer = null;
+        try{
+            //writer = new CSVWriter(new FileWriter(Path));
+            writer = new PrintWriter(filePath, "UTF-8");
+        }catch(Throwable e){
+            System.err.println("Error creating output file" + System.lineSeparator() + e );
+        }
+        performance.Tick();
         for (String userId : userIds){
         
             System.out.println(userId);
-            performance.Tick();
+            userPerformance.Tick();
             
             List<String> clientIds = adlDao.getClientIds(userId);
             
+            String tmp_buf = "";
             for(String clientId:clientIds){
                 
                 //Get AccessLog transactionId entries and NavajoLog timestamps for those entries
@@ -103,6 +117,7 @@ public class IntervalFreq {
                 }counter1=0;
                 */
                 
+                //performance.Tick();
                 List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
                 
                 Long interval = -1L;
@@ -118,32 +133,35 @@ public class IntervalFreq {
                         System.err.println(e);
                     }
                     if (previousTimestamp != null){
-                        interval = timestamp - previousTimestamp;    
-                    }
+                        interval = timestamp - previousTimestamp;
 
-                    count = intervals.get(interval);
-                    if (count==null) {
-                        intervals.put(interval, 1);
-                    }else{
-                        intervals.put(interval, intervals.get(interval)+1);
+                        count = intervals.get(interval);
+                        if (count==null) {
+                            intervals.put(interval, 1);
+                        }else{
+                            intervals.put(interval, intervals.get(interval)+1);
+                        }
+                        
+                        tmp_buf += interval.toString() + System.lineSeparator();
                     }
-
+                    
                     previousTimestamp = timestamp;
                 }
 
 
             }
-
-            System.out.println(intervals.size());
-
-            for (Long key: intervals.keySet()){
-                System.out.println(key + ": " + intervals.get(key));
-
-            }
-
-
-
-
+            userPerformance.Tock("Finished user:" + userId);
+            writer.print(tmp_buf);
         }
+        performance.Tock("Finished all users all files");
+        System.out.println(intervals.size());
+
+        for (Long key: intervals.keySet()){
+            //System.out.println(key + ": " + intervals.get(key));
+        }
+        
+        
+        writer.close();
+        System.out.println("Writer closed");
     }
 }
