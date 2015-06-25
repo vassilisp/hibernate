@@ -5,6 +5,7 @@ import gq.panop.hibernate.dao.AuditLogDao;
 import gq.panop.hibernate.dao.NavajoLogDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.hibernate.model.NavajoLog;
+import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.ResultingSetfromComplex;
 import gq.panop.hibernate.mytypes.TransactionId_Timestamp;
 import gq.panop.util.PerformanceUtil;
@@ -118,17 +119,17 @@ public class IntervalFreq {
                 */
                 
                 //performance.Tick();
-                List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
+                List<AugmentedACL> aACL = aclDao.getFullEfficientOrderedSessionTransactions(clientId);
                 
                 Long interval = -1L;
                 Long previousTimestamp = null; //not set yet
                 Long timestamp = 0L;
 
                 Integer count = 0;
-                for (AccessLog acl : accessLogs){
+                for (AugmentedACL aclItem : aACL){
                     
                     try{
-                        timestamp = acl.getNavajoLog().getTimestamp().longValue();
+                        timestamp = aclItem.getTimestamp();
                     }catch(Throwable e){
                         System.err.println(e);
                     }

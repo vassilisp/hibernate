@@ -192,7 +192,7 @@ public class AccessLogDao {
                 AugmentedACL aclItem = new AugmentedACL();
                 try{
                 aclItem.setAccessLog((AccessLog) obj[0]);
-                aclItem.setTimestamp((Long) obj[1]);
+                aclItem.setTimestamp(((BigInteger) obj[1]).longValueExact());
                 aclItem.setClientId((String) obj[2]);
                 }catch(Throwable e){
                     System.err.println(e);
