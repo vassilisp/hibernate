@@ -3,9 +3,12 @@ package gq.panop.util;
 import java.util.HashMap;
 
 public class PerformanceUtil {
-	private Long time;
+	private Long time  = -1L;
 	private Boolean set = false;
 	
+	private long result;
+	private String details = "";
+	private String info = "";
 	private static String res;
 	
 	private static HashMap<Long,Long> entity;
@@ -18,23 +21,44 @@ public class PerformanceUtil {
 		set = true;
 	}
 	
-	public void Tock(String info){
-		if (set){
-			time = getTime() - time;
-			System.out.println("(-- " + info + " --) //Performance result: " + time + res);
-		}else{
-			System.out.println("Tick not pressed");
-		}
+	public void Tick(String info){
+        time = getTime();
+        set = true;
+        this.info = info;
+    }
+	
+	public long Tock(String info){
+		return returnPerformance(info, true);
 	}
 	
-	public void Tock(){
-		if (set){
-			time = getTime() - time;
-			System.out.println("//Performance result: " + time + res);
-			set = false;
-		}else{
-			System.out.println("Tick not pressed");
-		}
+	public long Tock(){
+	    return returnPerformance("", true);
+	}
+	
+	public long Lap(){
+	    return returnPerformance(" ~[[Lap]]", false);
+	}
+	
+	private long returnPerformance(String info, Boolean close){
+	    if (set){
+            result = getTime() - time;
+            
+            if ((info.length()>0)||(this.info.length()>0)){
+                details = "(-- " + this.info + " : " + info + " --)";
+            }else{
+                details = "";
+            }
+            System.out.println(details + " //Performance result: " + result + res);
+            
+            if ((set)&&(close)){
+                set = false;
+                this.info = "";
+            }
+        }else{
+            System.out.println("Tick not pressed");
+            result = -1L;
+        }
+        return result;
 	}
 	
 	public static void TickWithId(long tickId){

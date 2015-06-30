@@ -16,13 +16,15 @@ public class App
 
     public static void main( String[] args ){
 
+        //TransitionGraph tg = new TransitionGraph();
+        //tg.tester();
         
         SessionTraversal st = new SessionTraversal();
-       // st.start();
+        st.start();
         
         //Playground.Start();        
         
-        IntervalFreq.generate();
+        //IntervalFreq.generate();
         
 
         
@@ -30,7 +32,7 @@ public class App
         
         //AnimatingAddNodeDemo.play();
        
-        ///JungGraph jg = new JungGraph();
+        //JungGraph jg = new JungGraph();
         //jg.Start();
         
         //InteractiveGraphView1 igv = new InteractiveGraphView1();

@@ -9,7 +9,7 @@ public class AugmentedACL {
     private NavajoLog navajoLog;
     private Long timestamp;
     private String clientId;
-    
+    private String InferedSession;
     
     public AugmentedACL() {
         super();
@@ -29,6 +29,14 @@ public class AugmentedACL {
         this.accessLog = accessLog;
         this.timestamp = timestamp;
         this.clientId = clientId;
+    }
+
+    public String getInferedSession() {
+        return InferedSession;
+    }
+
+    public void setInferedSession(String inferedSession) {
+        InferedSession = inferedSession;
     }
 
     public AccessLog getAccessLog() {

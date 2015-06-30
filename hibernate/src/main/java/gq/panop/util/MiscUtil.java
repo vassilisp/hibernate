@@ -34,4 +34,15 @@ public class MiscUtil {
         realDate.setTime(timestamp);
         return realDate;
     }
+    
+    
+    public static String URLRefererCleaner(String urlReferer){
+        if (urlReferer == null || urlReferer.isEmpty() || urlReferer.equalsIgnoreCase("null")) urlReferer = "NULL";
+        
+        return urlReferer.replace("https://aww-int.adnovum.ch", "").replace("https://aww.adnovum.ch", "");
+    }
+    
+    public static String URLTargetCleaner(String urlTarget){
+        return urlTarget.replace(" HTTP/1.1" , "").replace(" ", "").replace("POST", "").replace("GET", "");
+    }
 }

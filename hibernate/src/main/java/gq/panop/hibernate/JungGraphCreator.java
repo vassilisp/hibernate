@@ -10,7 +10,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -46,29 +45,31 @@ import edu.uci.ics.jung.visualization.renderers.Renderer;
 import edu.uci.ics.jung.visualization.util.Animator;
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.model.AccessLog;
+import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;
 import gq.panop.util.PerformanceUtil;
 
 
-public class JungGraph extends javax.swing.JApplet{
+public class JungGraphCreator extends javax.swing.JApplet{
 
-    static int edgeCount = 0;
+    static Integer edgeCount = 0;
     
     private Graph<String,MyEdge> svg = null;
     private AbstractLayout<String,MyEdge> layout = null;
     private VisualizationViewer<String,MyEdge> vv = null;
     
-    public JungGraph(){}
+    public JungGraphCreator(Boolean keepParameters, Boolean showLinkLabels){
+        this.keepParameters = keepParameters;
+        this.showLinkLabels = showLinkLabels;
+        
+        init();
+        
+    }
     
     //Algo setup parameters
-    public Boolean keepParameters = false;
-    public Integer numberOfDays = 2;
-    public Boolean showLinkLabels = false;
+    private Boolean keepParameters = false;
+    private Boolean showLinkLabels = false;
     
-    public void Start(){
-        init();
-        Create();
-    }
     
     public void init(){
         
@@ -193,119 +194,82 @@ public class JungGraph extends javax.swing.JApplet{
     }
     
     
-    public void Create(){
-        
-        PerformanceUtil performance = new PerformanceUtil("ms");
-        String userId = "tom";
-        
+    public void AddTransition(Transition transition){
 
-        
-        AccessLogDao accessLogDao = new AccessLogDao();
-        performance.Tick();
-        List<AccessLog> acl2 = accessLogDao.getAccessLogs_fromNavajoLog_fromAuditLog(userId);
-        performance.Tock("retrieving AccessLogs for a specific userId by first finding the clientIds from the AuditLog and then the"
-                + " transactionIds performed by those clientIds from NavajoLog");System.out.println(acl2.size());       
-                
+       
         String edge = "";
         String leftNode = "";
         String rightNode = "";
         
         String method="";
-        String label = "";
-        
-        double color = 0;
-        Integer order = 0;
-        
-        
-        Integer startingDay = 0;
-        boolean setup = false;
-        for (AccessLog acl: acl2){
-            color += 0.01;
-            order +=1;
-            
-            leftNode = acl.getReferer();
-            
-            String result = MiscUtil.URLRefererCleaner(leftNode);
-            
-            if (leftNode == null || leftNode.isEmpty() || leftNode.equalsIgnoreCase("null")) leftNode = "NULL";
 
-            leftNode = leftNode.replace("https://aww-int.adnovum.ch", "").replace("https://aww.adnovum.ch", "");
-           
-            rightNode = acl.getRequestedResource().toString().replace(" HTTP/1.1" , "").replace(" ", "");
-            
-            if (rightNode.startsWith("GET")){
-                method = "GET";
-            }else if (rightNode.startsWith("POST")){
-                method = "POST";
-            }
-            rightNode = rightNode.replace("POST", "").replace("GET", "");
-            
-            result = MiscUtil.URLTargetCleaner(rightNode);
-            
-            label = order.toString() + " )  " + method + " <<AT>> " + MiscUtil.toDate(acl.getRequestDate().longValue());
-            
-            if (setup == false){
-                setup = true;
-                startingDay = MiscUtil.toDate(acl.getRequestDate().longValue()).getDay();
-            }
-            if (MiscUtil.toDate(acl.getRequestDate().longValue()).getDay()>startingDay+ numberOfDays - 1){
-                if (setup==true){
-                    break;
-                }
-            }
-            
-            if (!(keepParameters)){
-                if(leftNode.indexOf("?")>0){
-                    leftNode = leftNode.substring(0, leftNode.indexOf("?"));
-                }
-                if(rightNode.indexOf("?")>0){
-                    rightNode = rightNode.substring(0, rightNode.indexOf("?"));
-                }
-            }
-            
-            
-            if (showLinkLabels){
-                edge = order.toString() + ") " + method + "  " + MiscUtil.toDate(acl.getRequestDate().longValue());
-            }else{
-                edge = order.toString();
-            }
-            
-            svg.addVertex(leftNode);
-            svg.addVertex(rightNode);
-            
-            
-            Long max = 0L;
-            for (MyEdge inEdge:svg.getInEdges(leftNode)){
-                if (inEdge.getTimestamp()>max){
-                    max = inEdge.getTimestamp();
-                }
-            }
-            if (max == 0L){
-                for (MyEdge outEdge:svg.getOutEdges(leftNode)){
-                    if (outEdge.getTimestamp()>max){
-                        max = outEdge.getTimestamp();
-                    }
-                }
-            }
+        leftNode = transition.getReferer();
+        leftNode = MiscUtil.URLRefererCleaner(leftNode);
 
-            
-            svg.addEdge(new MyEdge(edge, acl.getNavajoLog().getTimestamp().longValueExact(), acl.getNavajoLog().getTimestamp().longValueExact()- max), leftNode, rightNode);
-            
-            try {
-                System.out.println("hi");
-                //Thread.sleep(700);
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-            layout.reset();
-            vv.repaint();
+        rightNode = transition.getTarget();
+
+        if (rightNode.startsWith("GET")){
+            method = "GET";
+        }else if (rightNode.startsWith("POST")){
+            method = "POST";
         }
-        System.out.println("The graph g2 = " + svg.toString());
-        
+        rightNode = MiscUtil.URLTargetCleaner(rightNode);
+
+        if (!(keepParameters)){
+            if(leftNode.indexOf("?")>0){
+                leftNode = leftNode.substring(0, leftNode.indexOf("?"));
+            }
+            if(rightNode.indexOf("?")>0){
+                rightNode = rightNode.substring(0, rightNode.indexOf("?"));
+            }
+        }
+
+
+        if (showLinkLabels){
+            edge = edgeCount.toString() + ") " + method + "  " + MiscUtil.toDate(transition.getTimestamp());
+        }else{
+            edge = edgeCount.toString();
+        }
+
+        svg.addVertex(leftNode);
+        svg.addVertex(rightNode);
+
+
+       Long lastOccurance = 0L;// findLastTimeOccurance(leftNode);
+
+
+        svg.addEdge(new MyEdge(edge, transition.getTimestamp(), transition.getTimestamp() - lastOccurance), leftNode, rightNode);
+
+        try {
+            System.out.println("hi");
+            //Thread.sleep(700);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        layout.reset();
+        vv.repaint();
+
         Refresh();
-        
+
+    }
+    /*
+    public Long findLastTimeOccurance(MyNode node){
+        Long max = 0L;
+        for (MyEdge inEdge:svg.getInEdges(node)){
+            if (inEdge.getTimestamp()>max){
+                max = inEdge.getTimestamp();
+            }
+        }
+        if (max == 0L){
+            for (MyEdge outEdge:svg.getOutEdges(node)){
+                if (outEdge.getTimestamp()>max){
+                    max = outEdge.getTimestamp();
+                }
+            }
+        }
     }
     
+    */
     public void Refresh(){
         layout.initialize();
 
@@ -358,6 +322,16 @@ public class JungGraph extends javax.swing.JApplet{
     
     class MyNode {
         String id;
+        
+        private String sessionId;
+        public String getSessionId() {
+            return sessionId;
+        }
+        public void setSessionId(String sessionId) {
+            this.sessionId = sessionId;
+        }
+        private Boolean temporary;
+        
         public MyNode(String id) {
             this.id = id;
         }
@@ -369,7 +343,15 @@ public class JungGraph extends javax.swing.JApplet{
         }
         public String toString() {
             return "V"+id;
-        }        
+        }
+        public Boolean getTemporary() {
+            return temporary;
+        }
+        public void setTemporary(Boolean temporary) {
+            this.temporary = temporary;
+        }     
+        
+        
     }
     
     class MyEdge {

@@ -56,13 +56,13 @@ public class AccessLogDao {
 	
 	public List<AccessLog> getAccessLogs(List<String> transactionIds){
 
-	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+	    Session session = HibernateUtil.getSessionFactory().openSession();
 		String queryString = "FROM AccessLog WHERE transactionId IN (:transactionIds)";
 		
 		Query query = session.createQuery(queryString);
 		query.setParameterList("transactionIds", transactionIds);
 		
-		List<AccessLog> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
+		List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(session, query);
 		return accessLogs;
 	}
 	
@@ -93,7 +93,7 @@ public class AccessLogDao {
 	    Query query = session.createQuery(queryString);
 		query.setString("clientId", clientId);
 		
-		List<AccessLog> accessLogs = HibernateUtil.performSimpleStatelessQuery(session, query);
+		List<AccessLog> accessLogs = HibernateUtil.performSimpleQuery(session, query);
 	        
 		return accessLogs;
 	}
@@ -107,7 +107,7 @@ public class AccessLogDao {
 	    //String queryString = "SELECT acl FROM AccessLog acl JOIN acl.navajoLog njl JOIN njl.auditLog adl WHERE acl.auditLog.userId = :userId";
 
 	    String queryString = "SELECT acl FROM AccessLog acl WHERE acl.navajoLog.auditLog.userId = :userId "
-	            + "AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId";
+	            + "AND NOT acl.navajoLog.auditLog.clientId='null' group by acl.transactionId ORDER BY acl.navajoLog.timestamp";
 	    //String queryString = "SELECT distinct acl, njl FROM AccessLog acl, NavajoLog njl WHERE acl.transactionId=njl.transactionId AND njl.auditLog.userId = :userId AND NOT njl.auditLog.clientId='null'";
 	    Query query = HibernateUtil.getSessionFactory().openSession().createQuery(queryString);
 	    query.setString("userId", userId);

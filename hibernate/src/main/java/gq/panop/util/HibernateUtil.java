@@ -59,7 +59,7 @@ public class HibernateUtil {
 		
 	}
 	
-	   public static <T> List<T> performSimpleStatelessQuery(Session session, Query query){
+	   public static <T> List<T> performSimpleQuery(Session session, Query query){
 
 	        Transaction tx = null;
 	        
