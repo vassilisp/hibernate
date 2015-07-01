@@ -4,6 +4,7 @@ import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,17 +14,25 @@ import java.util.Set;
 
 public class SessionHandlerTimeThreshold {
 
-    private Integer subSessionThreshold = 1000 * 60 * 25 * 0; //ms * sec * min * (0/1 - disable/enable)
-    private Integer revisitedThreshold = 1000 * 15;//
-    private Integer autoRequestThreshold = 1000 * 2; //ms
+
     private String userId;
     private String clientId;
     
+    //------------Settings---------------------------
     private Boolean parallelDraw = false;
     private JungGraphCreator jungGraph = null;
     public Boolean acceptUnlinkedNodes = true;
+    private Boolean discardParameters = true;
+    private Boolean keepTimeStatistics = false;
+
     
+    private Integer subSessionThreshold = 1000 * 60 * 25 * 0; //ms * sec * min * (0/1 - disable/enable)
+    private Integer revisitedThreshold = 1000 * 15 * 1;//
+    private Integer autoRequestThreshold = 1000 * 2; //ms
+    //-----------------------------------------------
     
+    private HashMap<Long, Integer> intervalStatistics = new HashMap<Long, Integer>();
+    private List<Long> intervalList = new ArrayList<Long>();
     
     private List<Transition> transitions = new ArrayList<Transition>();
     private List<Transition> transitionBuffer = new ArrayList<Transition>();
@@ -58,78 +67,126 @@ public class SessionHandlerTimeThreshold {
         referer = MiscUtil.URLRefererCleaner(referer);
         target = MiscUtil.URLTargetCleaner(target);
         
-        System.out.println(referer + "  /// " + target);
-        Long timestamp = session.getTimestamp();
+        if (discardParameters){
+            if(referer.indexOf("?")>0){
+                referer = referer.substring(0, referer.indexOf("?"));
+            }
+            if(target.indexOf("?")>0){
+                target = target.substring(0, target.indexOf("?"));
+            }
+        }
         
-        Transition currentTransition = new Transition(referer, target, timestamp);
-        currentTransition.setTransactionId(session.getAccessLog().getTransactionId());
-        currentTransition.setUserId(userId);
+        Node currentTargetNode = new Node(target, session.getTimestamp());
+        Node currentRefererNode = new Node(referer, session.getTimestamp());
+        
+        if (!(target.contains("css")) && !(referer.contains("css")) && !(target.contains(".ico"))){
 
-        Node currentNode = new Node(target, session.getTimestamp());
-        
-        Long interval = null;
-        
-        ///----ACTUAL CODE FROM HERE
-        
+            System.out.println(referer + "  /// " + target);
+            Long timestamp = session.getTimestamp();
 
-        Node pastNode = null;
-        Boolean linkFound = false;
-        for (int i=0 ; i<loadedNodes.size(); i++){
-            pastNode = loadedNodes.get(i);
-            interval = currentTransition.getTimestamp() - pastNode.getTimestamp();
+            Transition currentTransition = new Transition(referer, target, timestamp);
+            currentTransition.setTransactionId(session.getAccessLog().getTransactionId());
+            currentTransition.setUserId(userId);
 
-            if (pastNode.getName().equals(currentTransition.getReferer())){
-                System.out.println("target-referer /" + pastNode.getName());
-                System.out.println(interval);
-                System.out.println("----------------------------");
-                
-                linkFound = true;
-                if (interval>autoRequestThreshold){
-                    transitionBuffer.add(currentTransition);
-                    
-                    updateLoadedNodes(currentNode);
-                    updateLoadedNodes(new Node(referer, timestamp));
-                    transitions.add(currentTransition);
-                    parallelDrawing(currentTransition);
-                    break;
-                }else{
-                    updateLoadedNodes(new Node(referer, timestamp));
-                    break;
-                }
-            }else if (currentTransition.getTarget().equals(pastNode.getName())){
-                //linkFound = true;
-                if (interval>autoRequestThreshold){
-                    if (interval<revisitedThreshold && revisitedThreshold>0){
-                        //not a new visit
+
+
+            Long interval = null;
+
+            ///----ACTUAL CODE FROM HERE
+
+
+            Node pastNode = null;
+            Boolean linkFound = false;
+            for (int i=0 ; i<loadedNodes.size(); i++){
+                pastNode = loadedNodes.get(i);
+                interval = currentTransition.getTimestamp() - pastNode.getTimestamp();
+
+                if (pastNode.getName().equals(currentTransition.getReferer())){
+                    System.out.println("target-referer /" + pastNode.getName());
+                    System.out.println(interval);
+                    System.out.println("----------------------------");
+                    addIntervalToStatistics(interval);
+
+                    linkFound = true;
+                    if (interval>autoRequestThreshold){
+                        transitionBuffer.add(currentTransition);
+
+                        updateLoadedNodes(currentTargetNode);
+                        updateLoadedNodes(currentRefererNode);
+                        transitions.add(currentTransition);
+                        parallelDrawing(currentTransition);
+                        break;
                     }else{
-                        //new visit (default behavior)
-                        //transitionBuffer.get(i).setTimestamp(currentTransition.getTimestamp());
+                        updateLoadedNodes(currentRefererNode);
+                        updateLoadedNodes(currentTargetNode);
+                        break;
+                    }
+                }else if (currentTransition.getTarget().equals(pastNode.getName())){
+                    //linkFound = true;
+                    if (interval>autoRequestThreshold){
+                        if (interval<revisitedThreshold && revisitedThreshold>0){
+                            //not a new visit
+                            System.out.println("Revisit under threshold detected -- do nothings");
+                        }else{
+                            //new visit (default behavior)
+                            //transitionBuffer.get(i).setTimestamp(currentTransition.getTimestamp());
 
-                        updateLoadedNodes(currentNode);
-                        //transitions.add(currentTransition);
-                        //parallelDrawing(currentTransition);
-                        //break;
+                            updateLoadedNodes(currentTargetNode);
+                            updateLoadedNodes(currentRefererNode);
+                            //transitions.add(currentTransition);
+                            //parallelDrawing(currentTransition);
+                            //break;
+                        }
                     }
                 }
             }
-        }
 
 
-        if (linkFound==false){
-            if (acceptUnlinkedNodes==true){
-                System.out.println("new unlinked node");
-                //perhaps check unlinked nodes for the interval between the last transaction
-                updateLoadedNodes(currentNode);
-                updateLoadedNodes(new Node(referer, timestamp));
-                transitionBuffer.add(currentTransition);
-                transitions.add(currentTransition);
-                parallelDrawing(currentTransition);
+            if (linkFound==false){
+                if (acceptUnlinkedNodes==true){
+                    System.out.println("new unlinked node");
+                    //perhaps check unlinked nodes for the interval between the last transaction
+                    updateLoadedNodes(currentTargetNode);
+                    updateLoadedNodes(new Node(referer, timestamp));
+                    transitionBuffer.add(currentTransition);
+                    transitions.add(currentTransition);
+                    parallelDrawing(currentTransition);
+                }
             }
+        }else{
+            System.out.println("CSS FOUND");
+            updateLoadedNodes(currentTargetNode);
+            updateLoadedNodes(currentRefererNode);
         }
-
         
     }
     
+    private void addIntervalToStatistics(Long interval){
+        if (keepTimeStatistics){
+            if (intervalStatistics.containsKey(interval)){
+                intervalStatistics.put(interval, intervalStatistics.get(interval) + 1);
+            }else{
+                intervalStatistics.put(interval, 1);
+            }
+            intervalList.add(interval);
+        }
+    }
+    
+    public void writeStatisticsToFile(String path){
+        if (keepTimeStatistics){
+            String timeId = ((Long)(System.currentTimeMillis()/10000)).toString();
+            timeId = timeId.substring(5, timeId.length());
+            String fileName = "intervals" + timeId + ".txt";
+            PrintWriter writer = null;
+            try{
+                //writer = new CSVWriter(new FileWriter(Path));
+                writer = new PrintWriter(path + fileName, "UTF-8");
+            }catch(Throwable e){
+                System.err.println("Error creating output file" + System.lineSeparator() + e );
+            }
+            intervalList.forEach((writer::println));
+        }
+    }
     private void updateLoadedNodes(Node e){
         Boolean found = false;
         for (Node tmpNode:loadedNodes){

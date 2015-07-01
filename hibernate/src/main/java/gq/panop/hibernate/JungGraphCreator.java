@@ -54,6 +54,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
 
     private Integer edgeCount = 0;
     
+    private Boolean keepVertexLabelParameters = true;
     private Graph<String,MyEdge> svg = null;
     private AbstractLayout<String,MyEdge> layout = null;
     private VisualizationViewer<String,MyEdge> vv = null;
@@ -107,13 +108,18 @@ public class JungGraphCreator extends javax.swing.JApplet{
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller() {
             @Override
             public String transform(Object v) {
-                String result = (String) v;
-                try{
-                    if(((String)v).indexOf("?")>0){
-                        result = ((String)v).substring(0, ((String)v).indexOf("?"));
+                String result = "";
+                if (!keepVertexLabelParameters){
+                    try{
+                        if(((String)v).indexOf("?")>0){
+                            result = ((String)v).substring(0, ((String)v).indexOf("?"));
+                        }
+                    }catch (Throwable e){
+                        System.out.println(e);
+                        result = "";
                     }
-                }catch (Throwable e){
-                    System.out.println(e);
+                }else{
+                    result = (String) v;
                 }
                 return result;
             }});
