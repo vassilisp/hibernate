@@ -40,6 +40,7 @@ public class SessionHandlerTimeThreshold {
         this.clientId = clientId;
         this.transitions.clear();
         this.transitionBuffer.clear();
+        this.jungGraph = new JungGraphCreator(true, false);
     }
     
     public void setParallelDraw(Boolean parallelDraw){
@@ -87,6 +88,7 @@ public class SessionHandlerTimeThreshold {
                     transitionBuffer.add(currentTransition);
                     
                     updateLoadedNodes(currentNode);
+                    updateLoadedNodes(new Node(referer, timestamp));
                     transitions.add(currentTransition);
                     parallelDrawing(currentTransition);
                     break;
@@ -101,7 +103,7 @@ public class SessionHandlerTimeThreshold {
                         //not a new visit
                     }else{
                         //new visit (default behavior)
-                        transitionBuffer.get(i).setTimestamp(currentTransition.getTimestamp());
+                        //transitionBuffer.get(i).setTimestamp(currentTransition.getTimestamp());
 
                         updateLoadedNodes(currentNode);
                         //transitions.add(currentTransition);
@@ -144,6 +146,7 @@ public class SessionHandlerTimeThreshold {
     }
     
     public List<Transition> getSessions(){
+        jungGraph.Refresh();
         return transitions;
     }
     

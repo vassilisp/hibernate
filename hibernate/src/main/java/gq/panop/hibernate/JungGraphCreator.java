@@ -52,7 +52,7 @@ import gq.panop.util.PerformanceUtil;
 
 public class JungGraphCreator extends javax.swing.JApplet{
 
-    static Integer edgeCount = 0;
+    private Integer edgeCount = 0;
     
     private Graph<String,MyEdge> svg = null;
     private AbstractLayout<String,MyEdge> layout = null;
@@ -249,7 +249,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
         layout.reset();
         vv.repaint();
 
-        Refresh();
+        //Refresh();
 
     }
     /*

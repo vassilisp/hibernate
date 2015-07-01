@@ -54,13 +54,15 @@ public class SessionTraversal {
                 List<AugmentedACL> augmentedACLs = aclDao.getFullEfficientOrderedSessionTransactions(clientId);
                 //augmentedACLs list contains all transactions of the given clientId session
             
-                shTT.newUser(userId, clientId);
-                //Session processing
-                for(AugmentedACL augmentedACL:augmentedACLs){
-                    shTT.nextSession(augmentedACL);
+                if (augmentedACLs.size()>0){
+                    shTT.newUser(userId, clientId);
+                    //Session processing
+                    for(AugmentedACL augmentedACL:augmentedACLs){
+                        shTT.nextSession(augmentedACL);
+                    }
+
+                    shTT.getSessions();
                 }
-                
-                shTT.getSessions();
             }
             performance.Tock("Super FAST");
             
