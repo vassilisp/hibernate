@@ -22,7 +22,7 @@ public class SessionHandlerInterGroupTimeThreshold {
     private AugmentedACL previousSession;
     
     private Boolean discardParameters = false;
-    
+    private Boolean discardImages = false;
     public Boolean acceptUnlinkedNodes = true;
     private List<Transition> transitions = new ArrayList<Transition>();
     
@@ -49,7 +49,7 @@ public class SessionHandlerInterGroupTimeThreshold {
     }
     
 
-    
+    private Boolean specialReq = false;
     public void nextSession(AugmentedACL session){
         String referer = session.getAccessLog().getReferer();
         
@@ -60,133 +60,153 @@ public class SessionHandlerInterGroupTimeThreshold {
         target = MiscUtil.URLTargetCleaner(target);
         
         Long timestamp = session.getTimestamp();                
-
         
-        if (!(target.contains("css")) && !(referer.contains("css")) && !(target.contains(".ico"))){
 
-            
-            Transition currentTransition = new Transition(referer, target, timestamp);
-            String transactionId = session.getAccessLog().getTransactionId();
-            currentTransition.setTransactionId(transactionId);
-            currentTransition.setUserId(userId);
-            
-            
-            if (discardParameters){
-                if(referer.indexOf("?")>0){
-                    referer = referer.substring(0, referer.indexOf("?"));
-                }
-                if(target.indexOf("?")>0){
-                    target = target.substring(0, target.indexOf("?"));
-                }
-            }
-            Node currentTargetNode = new Node(target, session.getTimestamp());
-            Node currentRefererNode = new Node(referer, session.getTimestamp());
-            
-            System.out.println(referer + "  /// " + target);
-
-            Integer refererIndex = loadedNodes.indexOf(currentRefererNode);
-            Integer targetIndex = loadedNodes.indexOf(currentTargetNode);
-            
-            Node loadedReferer = null;
-            Node loadedTarget = null;
-            try{
-                loadedReferer = loadedNodes.get(refererIndex);
-                loadedTarget = loadedNodes.get(targetIndex);
-            }catch(Throwable e){
-                
-            }
-            
-            Integer interval = null;
-            Integer revisitInterval = null;
-           
-            if (refererIndex>=0 && targetIndex>=0){
-
-                
-                interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
-                System.out.println("BOTH - " + interval);
-                
-                loadedReferer.setLastRequest(timestamp);
-                loadedTarget.setLastVisit(timestamp);
-                
-                if (interval>autoRequestThreshold){
-                    keep(currentTransition);
-                    SearchToActivateConnections(loadedReferer);
-                }else{
-
-                }
-                
-                
-            }else{
-                if (refererIndex>=0){
-                    interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
-                    System.out.println("REFERER - " + interval);
-
-                    loadedReferer.setLastRequest(timestamp);
-                    
-                    currentTargetNode.setLastVisit(timestamp);
-                    currentTargetNode.setLastRequest(timestamp);
-                    currentTargetNode.setTimestamp(timestamp);
-                    graphAdd(currentTargetNode);
-                    
-                    if (interval>autoRequestThreshold){
- 
-                        keep(currentTransition);
-
-                        SearchToActivateConnections(loadedReferer);
-                    }else{
-                        InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
-                        currentTargetNode.getInConnections().add(inConnection);
-                    }
-                }
-                if (targetIndex>=0){
-                    //referer doesn't exist
-                    graphAdd(currentRefererNode);
-
-                    keep(currentTransition);
-                    //target exists and is revisited
-
-                    if (refererIndex<0){
-                        //InConnection inConnection = new InConnection(loadedReferer, false, timestamp, transactionId);
-                        //currentTargetNode.getInConnections().add(inConnection);
-                    }
-                    revisitInterval = ((Long)(timestamp - loadedTarget.getLastVisit())).intValue();
-                    System.out.println("ONLY TARGET - revisiting interval" + revisitInterval);
-                    
-                    if (revisitedThreshold>0){
-                        if (revisitInterval>revisitedThreshold){
-                            loadedTarget.setLastVisit(timestamp);
-                            loadedTarget.setTimestamp(timestamp);
-                        }else{
-                            //
-                        }
-                    }
-
-                }
-                if (targetIndex<0 && refererIndex<0){
-                    
-                    System.out.println("TOTALY NEW NODES");
-                    //No target No referer exist
-                    currentRefererNode.setLastRequest(timestamp);
-                    graphAdd(currentRefererNode);
-
-                    //InConnection inConnection = new InConnection(currentRefererNode, false, timestamp, transactionId);
-                    //currentTargetNode.getInConnections().add(inConnection);
-
-                    currentTargetNode.setLastRequest(timestamp);
-                    currentTargetNode.setLastVisit(timestamp);
-
-                    graphAdd(currentTargetNode);
-
-                    keep(currentTransition);
-                }
-            }
-
-            
-                    
-        
-        }else{
-            System.err.println("CSS found");
+        Boolean isImage = (((target.endsWith(".png")||referer.endsWith(".png")) && discardImages));
+        Boolean isCSS = (target.contains("css")) || (referer.contains("css"));
+        Boolean isICO = (target.contains(".ico") || referer.contains(".ico")); 
+        if (isImage || isCSS || isICO) {
+            specialReq = true;
+            System.err.println("AUTOREQUEST DETECTED BY TYPE");
         }
+
+        Transition currentTransition = new Transition(referer, target, timestamp);
+        String transactionId = session.getAccessLog().getTransactionId();
+        currentTransition.setTransactionId(transactionId);
+        currentTransition.setUserId(userId);
+
+
+        if (discardParameters){
+            if(referer.indexOf("?")>0){
+                referer = referer.substring(0, referer.indexOf("?"));
+            }
+            if(target.indexOf("?")>0){
+                target = target.substring(0, target.indexOf("?"));
+            }
+        }
+        Node currentTargetNode = new Node(target, session.getTimestamp());
+        Node currentRefererNode = new Node(referer, session.getTimestamp());
+
+        System.out.println(referer + "  /// " + target);
+
+        Integer refererIndex = loadedNodes.indexOf(currentRefererNode);
+        Integer targetIndex = loadedNodes.indexOf(currentTargetNode);
+
+        Node loadedReferer = null;
+        Node loadedTarget = null;
+        try{
+            loadedReferer = loadedNodes.get(refererIndex);
+            loadedTarget = loadedNodes.get(targetIndex);
+        }catch(Throwable e){
+
+        }
+
+        
+        Integer interval = null;
+        Integer revisitInterval = null;
+
+
+        //CASE 1: old target old referer
+        if (refererIndex>=0 && targetIndex>=0){
+
+
+            interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
+            System.out.print("BOTH - " + interval);
+
+            loadedReferer.setLastRequest(timestamp);
+            System.out.println("  -- UPDATE: referers [lastRequest]");
+            
+            revisitInterval = ((Long)(timestamp - loadedTarget.getLastVisit())).intValue();
+            System.out.print("revisiting interval" + revisitInterval);
+            if (revisitedThreshold<0 || (revisitedThreshold>0 && revisitInterval>revisitedThreshold)){
+                loadedTarget.setLastVisit(timestamp);
+                System.out.println(" : UPDATE target [lastVisit]");
+            }
+
+            if (interval>autoRequestThreshold){
+                System.out.print("-Searching for inactive Connections");
+                SearchToActivateConnections(loadedReferer);
+                System.out.print("--Saving Transition");
+                keep(currentTransition);
+            }else{
+
+            }
+
+        }
+        //CASE 2: referer exists, target is new
+        else if(refererIndex>=0){
+            interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
+            System.out.println("REFERER - " + interval);
+
+            loadedReferer.setLastRequest(timestamp);
+            System.out.println(" -- UPDATE referers [lastRequest]");
+            
+            currentTargetNode.setLastVisit(timestamp);
+            currentTargetNode.setLastRequest(timestamp);
+            currentTargetNode.setTimestamp(timestamp);
+            graphAdd(currentTargetNode);
+            System.out.println(" -- CREATE target [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
+
+            if (interval>autoRequestThreshold){
+                System.out.print("-Searching for inactive Connections");
+                keep(currentTransition);
+                System.out.print("--Saving Transition");
+                SearchToActivateConnections(loadedReferer);
+            }else{
+                InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
+                currentTargetNode.getInConnections().add(inConnection);
+                System.out.println("ADDED inConnection to TARGET");
+            }
+            
+        }
+        //CASE 3: target exists, referer is new
+        else if (targetIndex>=0){
+            
+            System.out.println("ONLY TARGET");
+            //referer doesn't exist
+            currentRefererNode.setTimestamp(timestamp);
+            currentRefererNode.setLastRequest(timestamp);
+            currentRefererNode.setLastVisit(timestamp);
+            graphAdd(currentRefererNode);
+            System.out.println(" -- CREATE referer [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
+
+            //Since referer is new it wont have any inConnections - you can search if you want but it wont have any
+            System.out.println("--Saving Transition");
+            keep(currentTransition);
+
+            revisitInterval = ((Long)(timestamp - loadedTarget.getLastVisit())).intValue();
+            System.out.print("revisiting interval" + revisitInterval);
+            if (revisitedThreshold<0 || (revisitedThreshold>0 && revisitInterval>revisitedThreshold)){
+                    loadedTarget.setLastVisit(timestamp);
+                    System.out.println(" : UPDATE target [lastVisit]");
+            }
+
+        }
+        //CASE 4: target and referer are new Nodes
+        else if (targetIndex<0 && refererIndex<0){
+
+            System.out.println("TOTALY NEW NODES");
+            //No target No referer exist
+            currentRefererNode.setTimestamp(timestamp);
+            currentRefererNode.setLastRequest(timestamp);
+            currentRefererNode.setLastVisit(timestamp);
+            graphAdd(currentRefererNode);
+            System.out.println(" -- CREATE referer [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
+
+            
+            currentTargetNode.setLastRequest(timestamp);
+            currentTargetNode.setLastVisit(timestamp);
+            currentTargetNode.setLastRequest(timestamp);
+            graphAdd(currentTargetNode);
+            System.out.println(" -- CREATE referer [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
+
+            //Since referer is new it wont have any inConnections - you can search if you want but it wont have any
+            System.out.println("--Saving Transition");
+            keep(currentTransition);
+        }
+
+
+
     }
     
     
@@ -200,11 +220,9 @@ public class SessionHandlerInterGroupTimeThreshold {
         InConnection lastConnection = null;
         
         List<InConnection> copyOfConnections = new ArrayList<InConnection>();
-        for (InConnection inConnection: currentNode.getInConnections()){
-            copyOfConnections.add(inConnection);
-        }
-        copyOfConnections.clear();
         copyOfConnections.addAll(currentNode.getInConnections());
+        
+        System.out.println("Searching for inactive last connections (possible connections: " +copyOfConnections.size());
         
         Boolean exit = false;
         while (exit==false){
@@ -222,10 +240,13 @@ public class SessionHandlerInterGroupTimeThreshold {
                 }
                 if (lastConnection.getTemporary() == true){
                     Integer interval =((Long)(e.getLastVisit()-lastConnection.getTimestamp())).intValue(); 
+                    System.out.println(" -- Found inactive Connection");
                     if (interval<subSessionThreshold){
                         lastConnection.setTemporary(false);
                         Node otherEnd = lastConnection.getOtherEnd();
 
+                        loadedNodes.get(loadedNodes.indexOf(otherEnd));
+                        
                         Transition transition = new Transition(otherEnd.getName(), e.getName(), lastConnection.getTimestamp());
                         transition.setTransactionId(lastConnection.getTransactionId());
                         transition.setUserId(userId);
@@ -241,9 +262,16 @@ public class SessionHandlerInterGroupTimeThreshold {
             
         }
     }
+    
     private void keep(Transition transition){
         transitions.add(transition);
         jgc.AddTransition(transition);
+    }
+    
+    private void keepWithDetails(String referer, String target, Long timestamp, String transactionId, String userId){
+        Transition transition = new Transition(referer, target, timestamp);
+        transition.setTransactionId(transactionId);
+        transition.setUserId(userId);
     }
     
     private void graphAdd(Node e){
