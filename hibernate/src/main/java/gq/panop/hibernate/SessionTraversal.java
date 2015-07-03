@@ -111,7 +111,4 @@ public class SessionTraversal {
 
     }
     
-    private void SessionProcessor(AugmentedACL augACL){
-        
-    }
 }

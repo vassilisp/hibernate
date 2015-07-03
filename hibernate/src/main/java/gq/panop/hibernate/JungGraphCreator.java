@@ -247,7 +247,6 @@ public class JungGraphCreator extends javax.swing.JApplet{
         svg.addEdge(new MyEdge(edge, transition.getTimestamp(), transition.getTimestamp() - lastOccurance), leftNode, rightNode);
 
         try {
-            System.out.println("hi");
             //Thread.sleep(700);
         } catch (Throwable e) {
             e.printStackTrace();
