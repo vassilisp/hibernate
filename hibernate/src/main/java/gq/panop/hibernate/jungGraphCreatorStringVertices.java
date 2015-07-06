@@ -31,7 +31,6 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.ObservableGraph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import edu.uci.ics.jung.graph.event.GraphEvent;
-import edu.uci.ics.jung.graph.event.GraphEvent.Vertex;
 import edu.uci.ics.jung.graph.event.GraphEventListener;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import edu.uci.ics.jung.graph.util.Graphs;
@@ -51,16 +50,16 @@ import gq.panop.util.MiscUtil;
 import gq.panop.util.PerformanceUtil;
 
 
-public class JungGraphCreator extends javax.swing.JApplet{
+public class jungGraphCreatorStringVertices extends javax.swing.JApplet{
 
     private Integer edgeCount = 0;
     
     private Boolean keepVertexLabelParameters = true;
-    private Graph<MyNode,MyEdge> svg = null;
-    private AbstractLayout<MyNode,MyEdge> layout = null;
-    private VisualizationViewer<MyNode,MyEdge> vv = null;
+    private Graph<String,MyEdge> svg = null;
+    private AbstractLayout<String,MyEdge> layout = null;
+    private VisualizationViewer<String,MyEdge> vv = null;
     
-    public JungGraphCreator(Boolean keepParameters, Boolean showLinkLabels){
+    public jungGraphCreatorStringVertices(Boolean keepParameters, Boolean showLinkLabels){
         this.keepParameters = keepParameters;
         this.showLinkLabels = showLinkLabels;
         
@@ -75,27 +74,27 @@ public class JungGraphCreator extends javax.swing.JApplet{
     
     public void init(){
         
-        Graph<MyNode,MyEdge> ig = Graphs.<MyNode,MyEdge>synchronizedDirectedGraph(new DirectedSparseMultigraph<MyNode,MyEdge>());
+        Graph<String,MyEdge> ig = Graphs.<String,MyEdge>synchronizedDirectedGraph(new DirectedSparseMultigraph<String,MyEdge>());
 
-        ObservableGraph<MyNode,MyEdge> og = new ObservableGraph<MyNode,MyEdge>(ig);
-        og.addGraphEventListener(new GraphEventListener<MyNode,MyEdge>() {
+        ObservableGraph<String,MyEdge> og = new ObservableGraph<String,MyEdge>(ig);
+        og.addGraphEventListener(new GraphEventListener<String,MyEdge>() {
 
-            public void handleGraphEvent(GraphEvent<MyNode, MyEdge> evt) {
+            public void handleGraphEvent(GraphEvent<String, MyEdge> evt) {
                 System.err.println("got "+evt);
             }});
         this.svg = og;
    
         // The Layout<V, E> is parameterized by the vertex and edge types
-        //Layout<MyNode, String> layout = new FRLayout(svg);
+        //Layout<String, String> layout = new FRLayout(svg);
          
-        //Layout<MyNode, String> layout = new edu.uci.ics.jung.algorithms.layout.KKLayout<MyNode, String>(svg);
+        //Layout<String, String> layout = new edu.uci.ics.jung.algorithms.layout.KKLayout<String, String>(svg);
          
-        //layout = new edu.uci.ics.jung.algorithms.layout.DAGLayout<MyNode, String>(svg);
+        //layout = new edu.uci.ics.jung.algorithms.layout.DAGLayout<String, String>(svg);
 
-        layout = new FRLayout<MyNode, MyEdge>(svg);
-        //layout = new SpringLayout<MyNode, String>(svg);
+        layout = new FRLayout<String, MyEdge>(svg);
+        //layout = new SpringLayout<String, String>(svg);
         layout.setSize(new Dimension(800,800)); // sets the initial size of the space
-        vv = new VisualizationViewer<MyNode, MyEdge>(layout);
+        vv = new VisualizationViewer<String, MyEdge>(layout);
         //vv.setPreferredSize(new Dimension(900,900));
         // Show vertex and edge labels
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
@@ -106,26 +105,24 @@ public class JungGraphCreator extends javax.swing.JApplet{
         vv.setGraphMouse(gm);
         vv.addKeyListener(gm.getModeKeyListener());
 
-        /*
         vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller() {
             @Override
             public String transform(Object v) {
                 String result = "";
                 if (!keepVertexLabelParameters){
                     try{
-                        if(((MyNode)v).toString().indexOf("?")>0){
-                            result = ((MyNode)v).toString().substring(0, ((MyNode)v).toString().indexOf("?"));
+                        if(((String)v).toString().indexOf("?")>0){
+                            result = ((String)v).toString().substring(0, ((String)v).toString().indexOf("?"));
                         }
                     }catch (Throwable e){
                         System.out.println(e);
                         result = "";
                     }
                 }else{
-                    result = ((MyNode)v).toString();
+                    result = ((String)v).toString();
                 }
                 return result;
             }});
-        */
         
         vv.addComponentListener(new ComponentAdapter() {
 
@@ -147,14 +144,14 @@ public class JungGraphCreator extends javax.swing.JApplet{
             @Override
             public void keyPressed(KeyEvent arg0) {
                 // TODO Auto-generated method stub
-                //System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " pressed" );
+                System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " pressed" );
                 
             }
 
             @Override
             public void keyReleased(KeyEvent arg0) {
                 // TODO Auto-generated method stub
-                //System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " released" );
+                System.err.println(arg0.getKeyCode() + arg0.getKeyChar() + " released" );
                 
             }
 
@@ -172,8 +169,9 @@ public class JungGraphCreator extends javax.swing.JApplet{
         });
         
 //-------------
-        Transformer<MyNode,Paint> vertexColor = new Transformer<MyNode,Paint>() {
-            public Paint transform(MyNode in) {
+        
+        Transformer<String,Paint> vertexColor = new Transformer<String,Paint>() {
+            public Paint transform(String in) {
                 /*
                 String i = in.getSessionId();
                 if(i.endsWith("1")){
@@ -194,13 +192,13 @@ public class JungGraphCreator extends javax.swing.JApplet{
                     return Color.BLACK;
                 }else{
                     return Color.ORANGE;
-                }*/
-                return Color.WHITE;
+                }
+                */
+                return Color.BLUE;
             }
         };
-        
-        Transformer<MyNode,Shape> vertexSize = new Transformer<MyNode,Shape>(){
-            public Shape transform(MyNode in){
+        Transformer<String,Shape> vertexSize = new Transformer<String,Shape>(){
+            public Shape transform(String in){
                 Ellipse2D circle = new Ellipse2D.Double(-10, -10, 20, 20);
                 String i="3";
                 // in this case, the vertex is twice as large
@@ -209,9 +207,9 @@ public class JungGraphCreator extends javax.swing.JApplet{
                 else return circle;
             }
         };
-        
         vv.getRenderContext().setVertexFillPaintTransformer(vertexColor);
         vv.getRenderContext().setVertexShapeTransformer(vertexSize);
+        
 //-------------
         
         
@@ -262,32 +260,20 @@ public class JungGraphCreator extends javax.swing.JApplet{
             edge = edgeCount.toString();
         }
 
-        MyNode leftNodeNode = new MyNode(leftNode);
-        leftNodeNode.setSessionId(transition.getSubSessionId());
-        MyNode rightNodeNode = new MyNode(rightNode);
-        rightNodeNode.setSessionId(transition.getSubSessionId());
-        if(svg.containsVertex(leftNodeNode) || svg.containsVertex(rightNodeNode)){
-            for(MyNode myNode : svg.getVertices()){
-                if (myNode.equals(leftNodeNode)){
-                    myNode.setSessionId(leftNodeNode.getSessionId());
-                }else if(myNode.equals(rightNodeNode)){
-                    myNode.setSessionId(rightNodeNode.getSessionId());
-                }
-            }
-        }
+        svg.addVertex(leftNode);
+        svg.addVertex(rightNode);
 
-        svg.addVertex(leftNodeNode);
-        svg.addVertex(rightNodeNode);
+        Long lastOccurance = 0L;// findLastTimeOccurance(leftNode);
 
-        svg.addEdge(new MyEdge(edge), leftNodeNode, rightNodeNode);
+        svg.addEdge(new MyEdge(edge, transition.getTimestamp(), transition.getTimestamp() - lastOccurance), leftNode, rightNode);
 
         try {
             //Thread.sleep(700);
         } catch (Throwable e) {
             e.printStackTrace();
        }
-       //layout.reset();
-       //vv.repaint();
+       layout.reset();
+       vv.repaint();
 
     }
     
@@ -316,10 +302,10 @@ public class JungGraphCreator extends javax.swing.JApplet{
         Relaxer relaxer = new VisRunner((IterativeContext)layout);
         relaxer.stop();
         relaxer.prerelax();
-        StaticLayout<MyNode, MyEdge> staticLayout =
-            new StaticLayout<MyNode, MyEdge>(svg, layout);
-        LayoutTransition<MyNode, MyEdge> lt =
-            new LayoutTransition<MyNode, MyEdge>(vv, vv.getGraphLayout(),
+        StaticLayout<String, MyEdge> staticLayout =
+            new StaticLayout<String, MyEdge>(svg, layout);
+        LayoutTransition<String, MyEdge> lt =
+            new LayoutTransition<String, MyEdge>(vv, vv.getGraphLayout(),
                     staticLayout);
         Animator animator = new Animator(lt);
         animator.start();
@@ -329,8 +315,8 @@ public class JungGraphCreator extends javax.swing.JApplet{
     
     
     public void Edger(){
-        for (MyNode vert:svg.getVertices()){
-            for (MyNode neighbor :svg.getNeighbors(vert)){
+        for (String vert:svg.getVertices()){
+            for (String neighbor :svg.getNeighbors(vert)){
                 
                 //hypothesis to test if findEdgeSet is directional
                 //Answer: it is not directional
@@ -358,47 +344,8 @@ public class JungGraphCreator extends javax.swing.JApplet{
             }
         }
     }
-    
-    
-    class MyNode {
-        String id;
         
-        private String sessionId;
-        public String getSessionId() {
-            return sessionId;
-        }
-        public void setSessionId(String sessionId) {
-            this.sessionId = sessionId;
-        }
-        
- 
-        public MyNode(String id) {
-            this.id = id;
-        }
-        /**
-         * @return the id
-         */
-        public String getId() {
-            return id;
-        }
-        public String toString() {
-            return id;
-        }
-        
-       public int hashCode(){
-           return this.id.hashCode(); 
-       }
-        
-       public boolean equals(Object o){
-           if (o!=null && o instanceof MyNode){
-               return ((MyNode)o).getId().equals(this.id);
-           }else{
-               return false;
-           }
-       }
-        
-        
-    }
+
     
     class MyEdge {
         Long interval;
@@ -412,14 +359,8 @@ public class JungGraphCreator extends javax.swing.JApplet{
             this.interval = interval;
             this.label = label;
         } 
-    
 
-        public MyEdge(String label) {
-            super();
-            this.label = label;
-        }
-
-
+     
 
         public int getId() {
             return id;
@@ -458,7 +399,8 @@ public class JungGraphCreator extends javax.swing.JApplet{
 
 
         public String toString() {
-            return "E:" + id + " / " + label + " / " + interval;
+            //return "Edge: " + id + " / " + label + " / " + interval;
+            return String.valueOf(id);
         }
         
     }

@@ -35,11 +35,16 @@ public class SessionTraversal {
         performance.Tock();
         
         
-        SessionHandlerTimeThreshold shTT = new SessionHandlerTimeThreshold(0, 1250);
-        shTT.setParallelDraw(true);
+        //SessionHandlerTimeThreshold shTT = new SessionHandlerTimeThreshold(0, 1250);
+        //shTT.setParallelDraw(true);
         
-        SessionHandlerInterGroupTimeThreshold shigTT = new SessionHandlerInterGroupTimeThreshold(1000*60*20, 1000);
-        shTT.setParallelDraw(true);
+        //SessionHandlerInterGroupTimeThreshold shigTT = new SessionHandlerInterGroupTimeThreshold(1000*60*20, 1000);
+        //shigTT.setParallelDraw(true);
+
+        SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 1200);
+        
+        //Pick Session handlder
+        SessionHandler SH = sHU;
         
         //get all unique clientIds for each user
         for(String userId:userIds){
@@ -58,14 +63,14 @@ public class SessionTraversal {
                 //augmentedACLs list contains all transactions of the given clientId session
             
                 if (augmentedACLs.size()>0){
-                    shigTT.newUser(userId, clientId);
+                    SH.newUser(userId, clientId);
                     //Session processing
                     for(AugmentedACL augmentedACL:augmentedACLs){
                         //shTT.nextSession(augmentedACL);
-                        shigTT.nextSession(augmentedACL);
+                        SH.nextSession(augmentedACL);
                     }
 
-                    shigTT.getSessions();
+                    SH.getSessions();
                 }
             }
             performance.Tock("Super FAST");

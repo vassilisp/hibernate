@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class SessionHandlerTimeThreshold {
+public class SessionHandlerTimeThreshold implements SessionHandler{
 
 
     private String userId;

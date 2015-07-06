@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
+public class SessionHandlerUniversal implements SessionHandler {
 
     private Integer internalCounter = 0;
     
@@ -25,7 +25,7 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
     private Long lastUniversalRequest = 0L;
     private String lastSubSessionId = "";
     
-    private Boolean searchHiddenConnections = false;
+    private Boolean SearchHiddenConnections = true;
     private Boolean discardParameters = true;
     private Boolean discardImages = false;
     public Boolean acceptUnlinkedNodes = true;
@@ -37,8 +37,9 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
     private Integer subSessionCounter=0;
     
     private JungGraphCreator jgc = null;
+    //private jungGraphCreatorStringVertices jgc = null;
     
-    public SessionHandlerInterGroupTimeThreshold(Integer subSessionThreshold, Integer autoRequestThreshold){
+    public SessionHandlerUniversal(Integer subSessionThreshold, Integer autoRequestThreshold){
         this.subSessionThreshold = subSessionThreshold;
         this.autoRequestThreshold = autoRequestThreshold;
     }
@@ -49,9 +50,10 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
         this.subSessionCounter = 0;
         this.transitions.clear();
         this.loadedNodes.clear();
-        this.lastSubSessionId = "";
+        this.lastSubSessionId = "subSession:" + subSessionCounter;
         this.lastUniversalRequest = 0L;
         
+        //this.jgc = new jungGraphCreatorStringVertices(true, false);
         this.jgc = new JungGraphCreator(true, false);
     }
     
@@ -108,35 +110,40 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
         if (targetIndex>=0) loadedTarget = loadedNodes.get(targetIndex);
         
         Integer interval = null;
-
+        Integer subSessionInterval = null;
         //---------------------------------------------------------------------
         //CASE 1: old target old referer
         if (refererIndex>=0 && targetIndex>=0){
 
+            
             interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
+            subSessionInterval = ((Long) (timestamp - lastUniversalRequest)).intValue();
+            
             System.out.print("BOTH - " + interval);
             
             updateReferer(loadedReferer, timestamp);
             updateTarget(loadedTarget, timestamp);
 
-            lastUniversalRequest = timestamp;
+            
             
             if (interval>autoRequestThreshold){
-                if (interval<subSessionThreshold || subSessionThreshold<=0){
-                    String currentSubSession = loadedReferer.getSubSessionId();
-                    lastSubSessionId = currentSubSession;
+                if (subSessionInterval<subSessionThreshold || subSessionThreshold<=0){
+                    String currentSubSession = lastSubSessionId;
                     
                     loadedTarget.setSubSessionId(currentSubSession);
+                    loadedReferer.setSubSessionId(currentSubSession);
                     
                     SearchToActivateConnections(loadedReferer, specialReq);
                     keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, currentSubSession);
+                    lastUniversalRequest = timestamp;
                 }else{
                     String subSessionId = "subSession:" + subSessionCounter++;
                     lastSubSessionId = subSessionId;
                     
                     loadedReferer.setSubSessionId(subSessionId);
                     loadedTarget.setSubSessionId(subSessionId);
-                    keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, subSessionId); 
+                    keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, subSessionId);
+                    lastUniversalRequest = timestamp;
                     //after this point it is also safe to purge all nodes older from the referer
                 }
             }
@@ -145,20 +152,20 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
         //CASE 2: referer exists, target is new
         else if(refererIndex>=0){
             interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
+            subSessionInterval = ((Long) (timestamp - lastUniversalRequest)).intValue();
             System.out.println("REFERER - " + interval);
             
             updateReferer(loadedReferer, timestamp);
             createNode(currentTargetNode, timestamp);
-            
-            lastUniversalRequest = timestamp;
 
-            if (interval<subSessionThreshold || subSessionThreshold<=0){
-                String currentSubSession = loadedReferer.getSubSessionId();
+            if (subSessionInterval<subSessionThreshold || subSessionThreshold<=0){
+                String currentSubSession = lastSubSessionId;
                 currentTargetNode.setSubSessionId(currentSubSession);
-                lastSubSessionId = currentSubSession;
+
                 if (interval>autoRequestThreshold){
                     SearchToActivateConnections(loadedReferer, specialReq);
                     keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, currentSubSession);
+                    lastUniversalRequest = timestamp;
                 }else{
                     InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
                     currentTargetNode.getInConnections().add(inConnection);
@@ -172,6 +179,7 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
                 
                 if (interval>autoRequestThreshold){
                     keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, subSessionId);
+                    lastUniversalRequest = timestamp;
                 }else{
                     InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
                     currentTargetNode.getInConnections().add(inConnection);
@@ -191,29 +199,29 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
 
             //target exist so update it
             updateTarget(loadedTarget, timestamp);
-            
-            lastUniversalRequest = timestamp;
 
 
             if (!specialReq){
-                Integer reverseInterval = 0;
                 if (loadedTarget.getLastVisit()> loadedTarget.getLastRequest()){
-                    reverseInterval = ((Long)(timestamp - loadedTarget.getLastVisit())).intValue();
+                    subSessionInterval = ((Long)(timestamp - loadedTarget.getLastVisit())).intValue();
                 }else{
-                    reverseInterval = ((Long)(timestamp - loadedTarget.getLastRequest())).intValue();
+                    subSessionInterval = ((Long)(timestamp - loadedTarget.getLastRequest())).intValue();
                 }
-                if (reverseInterval< subSessionThreshold || subSessionThreshold<=0){
-                    String currentSubSession = loadedReferer.getSubSessionId();
-                    lastSubSessionId = currentSubSession;
+                
+                if (subSessionInterval< subSessionThreshold || subSessionThreshold<=0){
+                    String currentSubSession = lastSubSessionId;
+                    
                     currentRefererNode.setSubSessionId(currentSubSession);
                     //Since referer is new it wont have any inConnections - you can search if you want but it wont have any
                     keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, currentSubSession);
+                    lastUniversalRequest = timestamp;
                 }else{
                     String subSessionId = "subSession:" + subSessionCounter++;
                     lastSubSessionId = subSessionId;
                     currentRefererNode.setSubSessionId(subSessionId);
                     //Since referer is new it wont have any inConnections - you can search if you want but it wont have any
                     keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, subSessionId);
+                    lastUniversalRequest = timestamp;
                 }
             }
             
@@ -231,8 +239,9 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
             String subSessionId = null;
             if (!specialReq){
                 
-                Integer lastInterval = ((Long)(timestamp - lastUniversalRequest)).intValue();
-                if (lastInterval<subSessionThreshold || subSessionThreshold<=0){
+                subSessionInterval = ((Long)(timestamp - lastUniversalRequest)).intValue();
+                System.out.println("SubSessionInterval: " + subSessionInterval);
+                if (subSessionInterval<subSessionThreshold || subSessionThreshold<=0){
                     subSessionId = lastSubSessionId;
                     currentRefererNode.setSubSessionId(subSessionId);
                     currentTargetNode.setSubSessionId(subSessionId);
@@ -244,13 +253,13 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
                 }
                 
             }else{
-                subSessionId = "subSession:XXX";
+                subSessionId = lastSubSessionId;
                 currentRefererNode.setSubSessionId(subSessionId);
                 currentTargetNode.setSubSessionId(subSessionId);
             }
-            
             //Since referer is new it wont have any inConnections - you can search if you want but it wont have any;
             keepWithDetails(specialReq, referer, target, timestamp, transactionId, userId, subSessionId);
+            lastUniversalRequest = timestamp;
         }
         //---------------------------------------------------------------------
 
@@ -316,9 +325,8 @@ public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
     }
     
     private void SearchToActivateConnections(Node e, Boolean specialReq){
-        if (!specialReq && searchHiddenConnections){
+        if (!specialReq && SearchHiddenConnections){
             Node currentNode = e;
-            List<Node> visitedNodes = new ArrayList<Node>();
             InConnection lastConnection = null;
 
             List<InConnection> copyOfConnections = new ArrayList<InConnection>();

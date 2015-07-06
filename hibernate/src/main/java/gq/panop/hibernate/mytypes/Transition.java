@@ -7,6 +7,8 @@ public class Transition {
     private String sessionId;
     private String userId;
     private String transactionId;
+    
+    private String subSessionId;
 
 
     public Transition(String referer, String target, Long timestamp) {
@@ -33,6 +35,12 @@ public class Transition {
         this.transactionId = transactionId;
     }
 
+    public String getSubSessionId() {
+        return subSessionId;
+    }
+    public void setSubSessionId(String subSessionId) {
+        this.subSessionId = subSessionId;
+    }
     public String getUserId() {
         return userId;
     }
