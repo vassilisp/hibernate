@@ -77,7 +77,15 @@ public class Transition {
     public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
+    @Override
+    public String toString() {
+        return "Transition [referer=" + referer + ", target=" + target
+                + ", timestamp=" + timestamp + ", sessionId=" + sessionId
+                + ", userId=" + userId + ", transactionId=" + transactionId
+                + ", subSessionId=" + subSessionId + "]";
+    }
 
+    
 
 
 }

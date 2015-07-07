@@ -174,7 +174,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
 //-------------
         Transformer<MyNode,Paint> vertexColor = new Transformer<MyNode,Paint>() {
             public Paint transform(MyNode in) {
-                /*
+                
                 String i = in.getSessionId();
                 if(i.endsWith("1")){
                     return Color.PINK;
@@ -194,15 +194,18 @@ public class JungGraphCreator extends javax.swing.JApplet{
                     return Color.BLACK;
                 }else{
                     return Color.ORANGE;
-                }*/
-                return Color.WHITE;
+                }
+                //return Color.WHITE;
             }
         };
         
         Transformer<MyNode,Shape> vertexSize = new Transformer<MyNode,Shape>(){
             public Shape transform(MyNode in){
-                Ellipse2D circle = new Ellipse2D.Double(-10, -10, 20, 20);
-                String i="3";
+                Integer inE = svg.getInEdges(in).size();
+                Integer outE = svg.getOutEdges(in).size();
+                Ellipse2D circle = new Ellipse2D.Double(-10, -10, inE*5+5, outE*5+5);
+                //Ellipse2D circle = new Ellipse2D.Double(-10, -10, 20, 20);
+                String i="4";
                 // in this case, the vertex is twice as large
                 if(i == "2") return AffineTransform.getScaleInstance(2, 2).createTransformedShape(circle);
                 if(i == "3") return AffineTransform.getScaleInstance(0.5, 0.5).createTransformedShape(circle);
@@ -257,9 +260,9 @@ public class JungGraphCreator extends javax.swing.JApplet{
 
 
         if (showLinkLabels){
-            edge = edgeCount.toString() + ") " + method + "  " + MiscUtil.toDate(transition.getTimestamp());
+            edge = method + "  " + MiscUtil.toDate(transition.getTimestamp());
         }else{
-            edge = edgeCount.toString();
+            edge = transition.getSubSessionId();
         }
 
         MyNode leftNodeNode = new MyNode(leftNode);
@@ -385,6 +388,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
             return id;
         }
         
+        
        public int hashCode(){
            return this.id.hashCode(); 
        }
@@ -415,7 +419,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
     
 
         public MyEdge(String label) {
-            super();
+            this.id = edgeCount++;
             this.label = label;
         }
 
@@ -458,7 +462,7 @@ public class JungGraphCreator extends javax.swing.JApplet{
 
 
         public String toString() {
-            return "E:" + id + " / " + label + " / " + interval;
+            return "E:" + id + " / " + label; //+ " / " + interval;
         }
         
     }

@@ -1,16 +1,11 @@
 package gq.panop.hibernate;
 
-import gq.panop.hibernate.SessionHandlerTimeThreshold.Node;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 public class SessionHandlerUniversal implements SessionHandler {
 
@@ -26,9 +21,13 @@ public class SessionHandlerUniversal implements SessionHandler {
     private String lastSubSessionId = "";
     
     private Boolean SearchHiddenConnections = true;
-    private Boolean discardParameters = true;
-    private Boolean discardImages = false;
+    private Boolean discardParameters = false;
+    private Boolean discardImages = true;
     public Boolean acceptUnlinkedNodes = true;
+    private Boolean generateGraphs = false;
+    private Boolean debugMode = false;
+    
+    
     private List<Transition> transitions = new ArrayList<Transition>();
     
     private List<Node> loadedNodes = new ArrayList<Node>();
@@ -36,7 +35,7 @@ public class SessionHandlerUniversal implements SessionHandler {
 
     private Integer subSessionCounter=0;
     
-    private JungGraphCreator jgc = null;
+    private jungGraphCreatorStringVertices jgc = null;
     //private jungGraphCreatorStringVertices jgc = null;
     
     public SessionHandlerUniversal(Integer subSessionThreshold, Integer autoRequestThreshold){
@@ -44,6 +43,14 @@ public class SessionHandlerUniversal implements SessionHandler {
         this.autoRequestThreshold = autoRequestThreshold;
     }
     
+    public SessionHandlerUniversal(Integer subSessionThreshold,
+            Integer autoRequestThreshold, Boolean generateGraphs) {
+        super();
+        this.subSessionThreshold = subSessionThreshold;
+        this.autoRequestThreshold = autoRequestThreshold;
+        this.generateGraphs = generateGraphs;
+    }
+
     public void newUser(String userId, String clientId){
         this.userId = userId;
         this.clientId = clientId;
@@ -53,8 +60,10 @@ public class SessionHandlerUniversal implements SessionHandler {
         this.lastSubSessionId = "subSession:" + subSessionCounter;
         this.lastUniversalRequest = 0L;
         
-        //this.jgc = new jungGraphCreatorStringVertices(true, false);
-        this.jgc = new JungGraphCreator(true, false);
+        if (generateGraphs){
+            //this.jgc = new jungGraphCreatorStringVertices(true, false);
+            this.jgc = new jungGraphCreatorStringVertices(true, false);
+        }
     }
     
 
@@ -76,7 +85,7 @@ public class SessionHandlerUniversal implements SessionHandler {
         Boolean specialReq = false;
         if (isImage || isCSS || isICO) {
             specialReq = true;
-            System.err.println("AUTOREQUEST DETECTED BY TYPE");
+            customDeb("AUTOREQUEST DETECTED BY TYPE");
         }
 
         String transactionId = session.getAccessLog().getTransactionId();
@@ -97,8 +106,8 @@ public class SessionHandlerUniversal implements SessionHandler {
         Node currentTargetNode = new Node(target, session.getTimestamp());
         Node currentRefererNode = new Node(referer, session.getTimestamp());
         
-        System.out.println("===========================================================");
-        System.out.println(referer + "  /// " + target + "    == " + timestamp);
+        customDeb("===========================================================");
+        customDeb(referer + "  /// " + target + "    == " + timestamp);
 
         Integer refererIndex = loadedNodes.indexOf(currentRefererNode);
         Integer targetIndex = loadedNodes.indexOf(currentTargetNode);
@@ -119,7 +128,7 @@ public class SessionHandlerUniversal implements SessionHandler {
             interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
             subSessionInterval = ((Long) (timestamp - lastUniversalRequest)).intValue();
             
-            System.out.print("BOTH - " + interval);
+            customDeb("BOTH - " + interval);
             
             updateReferer(loadedReferer, timestamp);
             updateTarget(loadedTarget, timestamp);
@@ -147,13 +156,14 @@ public class SessionHandlerUniversal implements SessionHandler {
                     //after this point it is also safe to purge all nodes older from the referer
                 }
             }
+            customDeb(loadedReferer.getSubSessionId());
 
         }
         //CASE 2: referer exists, target is new
         else if(refererIndex>=0){
             interval = ((Long) (timestamp - loadedReferer.getLastRequest())).intValue();
             subSessionInterval = ((Long) (timestamp - lastUniversalRequest)).intValue();
-            System.out.println("REFERER - " + interval);
+            customDeb("REFERER - " + interval);
             
             updateReferer(loadedReferer, timestamp);
             createNode(currentTargetNode, timestamp);
@@ -169,7 +179,7 @@ public class SessionHandlerUniversal implements SessionHandler {
                 }else{
                     InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
                     currentTargetNode.getInConnections().add(inConnection);
-                    System.out.println("ADDED inConnection to TARGET");
+                    customDeb("ADDED inConnection to TARGET");
                 }
             }else{
                 String subSessionId = "subSession:" + subSessionCounter++;
@@ -183,17 +193,17 @@ public class SessionHandlerUniversal implements SessionHandler {
                 }else{
                     InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
                     currentTargetNode.getInConnections().add(inConnection);
-                    System.out.println("ADDED inConnection to TARGET");
+                    customDeb("ADDED inConnection to TARGET");
                 }
             }
-            System.out.println(loadedReferer.getSubSessionId());
+            customDeb(loadedReferer.getSubSessionId());
             
                 
         }
         //CASE 3: target exists, referer is new
         else if (targetIndex>=0){
             
-            System.out.println("ONLY TARGET");
+            customDeb("ONLY TARGET");
             //referer doesn't exist
             createNode(currentRefererNode, timestamp);
 
@@ -231,7 +241,7 @@ public class SessionHandlerUniversal implements SessionHandler {
         //CASE 4: target and referer are new Nodes
         else if (targetIndex<0 && refererIndex<0){
             
-            System.out.println("TOTALY NEW NODES");
+            customDeb("TOTALY NEW NODES");
             //No target No referer exist
             createNode(currentRefererNode, timestamp);
             createNode(currentTargetNode, timestamp);
@@ -240,7 +250,7 @@ public class SessionHandlerUniversal implements SessionHandler {
             if (!specialReq){
                 
                 subSessionInterval = ((Long)(timestamp - lastUniversalRequest)).intValue();
-                System.out.println("SubSessionInterval: " + subSessionInterval);
+                customDeb("SubSessionInterval: " + subSessionInterval);
                 if (subSessionInterval<subSessionThreshold || subSessionThreshold<=0){
                     subSessionId = lastSubSessionId;
                     currentRefererNode.setSubSessionId(subSessionId);
@@ -281,7 +291,7 @@ public class SessionHandlerUniversal implements SessionHandler {
                     //add InConnection
                     InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
                     currentTargetNode.getInConnections().add(inConnection);
-                    System.out.println("ADDED inConnection to TARGET");
+                    customDeb("ADDED inConnection to TARGET");
                 }
               //keep with Special check
             }
@@ -301,22 +311,22 @@ public class SessionHandlerUniversal implements SessionHandler {
         e.setTimestamp(timestamp);
         //e.setSubSessionId(subSessionId);
         graphAdd(e);
-        System.out.println(" -- CREATE Node [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
+        customDeb(" -- CREATE Node [lastVisit=lastRequest=timestamp=CURRENTTIMESTAMP");
     }
     
     private void updateReferer(Node e, Long timestamp){
         e.setLastRequest(timestamp);
-        System.out.println(" -- UPDATE referers [lastRequest]");
+        customDeb(" -- UPDATE referers [lastRequest]");
     }
     
     private void updateTarget(Node e, Long timestamp){
         Integer revisitInterval = ((Long)(timestamp - e.getLastVisit())).intValue();
-        System.out.println("Revisiting interval: " + revisitInterval);
+        customDeb("Revisiting interval: " + revisitInterval);
         
         if (revisitedThreshold<0 || (revisitedThreshold>0 && revisitInterval>revisitedThreshold)){
             e.setLastVisit(timestamp);
             e.setLastRequest(timestamp);
-            System.out.println(" : UPDATE target [lastVisit AND lastRequest]");
+            customDeb(" : UPDATE target [lastVisit AND lastRequest]");
         }
     }
     
@@ -332,7 +342,7 @@ public class SessionHandlerUniversal implements SessionHandler {
             List<InConnection> copyOfConnections = new ArrayList<InConnection>();
             copyOfConnections.addAll(currentNode.getInConnections());
 
-            System.out.println("Searching for inactive last connections (possible connections: " +copyOfConnections.size());
+            customDeb("Searching for inactive last connections (possible connections: " +copyOfConnections.size());
 
             Boolean exit = false;
             while (exit==false){
@@ -350,7 +360,7 @@ public class SessionHandlerUniversal implements SessionHandler {
                     }
                     if (lastConnection.getTemporary() == true){
                         Integer interval =((Long)(e.getLastVisit()-lastConnection.getTimestamp())).intValue(); 
-                        System.out.println(" -- Found inactive Connection");
+                        customDeb(" -- Found inactive Connection");
                         if (interval<subSessionThreshold){
                             lastConnection.setTemporary(false);
                             Node otherEnd = lastConnection.getOtherEnd();
@@ -376,28 +386,81 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     
     private void keep(Transition transition){
-        System.out.println("*****   " + internalCounter++);
+        customDeb("*****   " + internalCounter++);
         transitions.add(transition);
-        jgc.AddTransition(transition);
+        if (generateGraphs){
+            jgc.AddTransition(transition);
+        }
     }
     
     private void keepWithDetails(Boolean specialReq, String referer, String target, Long timestamp, String transactionId, String userId, String subSessionId){
         if (!specialReq){
-            System.out.println("   --- Saving Transition");
+            customDeb("   --- Saving Transition");
             Transition transition = new Transition(referer, target, timestamp);
             transition.setTransactionId(transactionId);
             transition.setUserId(userId);
             transition.setSubSessionId(subSessionId);
+            transition.setSessionId(clientId);
             
             keep(transition);
         }
     }
+    
+    private void customDeb(String text){
+        if (debugMode){
+            System.out.println(text);
+        }
+    }
+    
     
     private void graphAdd(Node e){
         loadedNodes.add(e);
     }
 
     
+    
+    public Boolean getDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(Boolean debugMode) {
+        this.debugMode = debugMode;
+    }
+
+    public Boolean getGenerateGraphs() {
+        return generateGraphs;
+    }
+
+    public void setGenerateGraphs(Boolean generateGraphs) {
+        this.generateGraphs = generateGraphs;
+    }
+
+
+    public Boolean getSearchHiddenConnections() {
+        return SearchHiddenConnections;
+    }
+
+    public void setSearchHiddenConnections(Boolean searchHiddenConnections) {
+        SearchHiddenConnections = searchHiddenConnections;
+    }
+
+    public Boolean getDiscardParameters() {
+        return discardParameters;
+    }
+
+    public void setDiscardParameters(Boolean discardParameters) {
+        this.discardParameters = discardParameters;
+    }
+
+    public Boolean getDiscardImages() {
+        return discardImages;
+    }
+
+    public void setDiscardImages(Boolean discardImages) {
+        this.discardImages = discardImages;
+    }
+
+
     private class InConnection{
         private Node otherEnd;
         private Boolean temporary = false;

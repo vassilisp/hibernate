@@ -1,5 +1,7 @@
 package gq.panop.hibernate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +22,10 @@ public class App
         //tg.tester();
         
         SessionTraversal st = new SessionTraversal();
+        List<String>requestedUserIds = new ArrayList<String>();
+        requestedUserIds.add("mbe");
+        requestedUserIds.add("tom");
+        st.setupRequestedUserIds(requestedUserIds);
         st.start();
         
         //Playground.Start();        

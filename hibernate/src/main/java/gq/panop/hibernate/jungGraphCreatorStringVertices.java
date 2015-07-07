@@ -255,9 +255,9 @@ public class jungGraphCreatorStringVertices extends javax.swing.JApplet{
 
 
         if (showLinkLabels){
-            edge = edgeCount.toString() + ") " + method + "  " + MiscUtil.toDate(transition.getTimestamp());
+            edge = method + "  " + MiscUtil.toDate(transition.getTimestamp());
         }else{
-            edge = edgeCount.toString();
+            edge = transition.getSubSessionId();
         }
 
         svg.addVertex(leftNode);
@@ -360,7 +360,10 @@ public class jungGraphCreatorStringVertices extends javax.swing.JApplet{
             this.label = label;
         } 
 
-     
+        public MyEdge(String label) {
+            this.id = edgeCount++;
+            this.label = label;
+        }
 
         public int getId() {
             return id;
@@ -400,7 +403,7 @@ public class jungGraphCreatorStringVertices extends javax.swing.JApplet{
 
         public String toString() {
             //return "Edge: " + id + " / " + label + " / " + interval;
-            return String.valueOf(id);
+            return String.valueOf(id) + " /" + label;
         }
         
     }
