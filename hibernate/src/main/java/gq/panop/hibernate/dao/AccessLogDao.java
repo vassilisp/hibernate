@@ -179,6 +179,7 @@ public class AccessLogDao {
            String queryString = "SELECT acl, acl.navajoLog.timestamp, acl.navajoLog.clientId "
                            + "FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
             Query query = session.createQuery(queryString);
+            query.setReadOnly(true);
             query.setString("clientId", clientId);
             
             List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);

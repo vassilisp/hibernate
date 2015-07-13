@@ -112,7 +112,7 @@ public class SessionTraversal {
             for(String clientId:clientIds){
                 List<AugmentedACL> augmentedACLs = aclDao.getFullEfficientOrderedSessionTransactions(clientId);
                 //augmentedACLs list contains all transactions of the given clientId session
-
+                performance.Lap();
                 if (augmentedACLs.size()>0){
 
                     //-----------------------------------------------------

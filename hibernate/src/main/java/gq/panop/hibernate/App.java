@@ -28,7 +28,7 @@ public class App
         st.setupRequestedUserIds(requestedUserIds);
         st.start();
         
-        //Playground.Start();        
+        Playground.Start();        
         
         //IntervalFreq.generate();
         

@@ -50,9 +50,9 @@ public class Playground {
 
             //for testing purposes
             // TODO remove this in production
-            userId = "tom";
+            //userId = "tom";
             // TODO and use this
-            //userId = keyboard.next();
+            userId = keyboard.next();
             
             
             for (String user : userIds){
@@ -100,7 +100,9 @@ public class Playground {
         performance.Tick();
         String transactionId = "c0a80dcd-0dfd-aaccc-146b854ed38-00007c51";
         AccessLog accessLog = accessLogDao.getAccessLog(transactionId);
-        System.out.println(accessLog.toString());
+        if (accessLog != null){
+            System.out.println(accessLog.toString());
+        }
         performance.Tock("Retrieve a transactionId by providing a transactionId");
         separate();
         
