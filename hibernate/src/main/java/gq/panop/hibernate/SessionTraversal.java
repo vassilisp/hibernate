@@ -3,9 +3,11 @@ package gq.panop.hibernate;
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.dao.AuditLogDao;
 import gq.panop.hibernate.dao.NavajoLogDao;
+import gq.panop.hibernate.dao.PreprocessDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
+import gq.panop.hibernate.mytypes.UserStatistics;
 import gq.panop.util.MiscUtil;
 import gq.panop.util.PerformanceUtil;
 
@@ -13,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -26,6 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Iterator;
 
@@ -40,6 +45,7 @@ public class SessionTraversal {
     private Boolean generateStatistics = true;
     private Boolean writeStatisticToFile = true;
     private Boolean detailedReport = true;
+    private Integer selectedUserIdsOption = -1; //default
     //=========================================================================
     
     public void setupRequestedUserIds(List<String> requestedUserIds){
@@ -52,7 +58,8 @@ public class SessionTraversal {
         
         AuditLogDao adlDao = new AuditLogDao();
         AccessLogDao aclDao = new AccessLogDao();
-        NavajoLogDao njlDao = new NavajoLogDao();
+        
+        PreprocessDao prepDao = new PreprocessDao();
         
         /*
         try{
@@ -69,7 +76,6 @@ public class SessionTraversal {
         performance.Tick();
         List<String> userIds = adlDao.getAllUsers();
         performance.Tock();
-        
          
         Map<String, UserStatistics> userStatistics = new HashMap<String, UserStatistics>();
                 
@@ -79,12 +85,15 @@ public class SessionTraversal {
         //SessionHandlerInterGroupTimeThreshold shigTT = new SessionHandlerInterGroupTimeThreshold(1000*60*20, 1000);
         //shigTT.setParallelDraw(true);
 
+        //SessionHandler settings ---------------------------------------------
         SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 2000);
         sHU.setGenerateGraphs(false);
         sHU.setDiscardImages(true);
         sHU.setDiscardParameters(true);
         sHU.setSearchHiddenConnections(false);
         sHU.setDebugMode(false);
+        sHU.setTokenizer(0);
+        //---------------------------------------------------------------------
 
         //Pick Session handlder
         SessionHandler SH = sHU;
@@ -94,25 +103,53 @@ public class SessionTraversal {
         List<String> selectedUserIds = selectionOfUserIds(userIds);
         UserStatistics uS = new UserStatistics();
 
+        Integer TotalUsers = userIds.size();
+        Integer userCounter = 1;
+        
+        Integer totalClientIds = 0;
+        
+        Long etaEstimation = 0L;
+        Long etaAccumulator = 0L;
         //get all unique clientIds for each user
+        selectedUserIds.remove("null");
         for(String userId:selectedUserIds){
-            System.out.println("#+#+#+#+#+#+##+#+#+#+#+## Session traversal starting for user:" + userId);
+            System.out.println("#+#+#+#+#+#+##+#+#+#+#+## ((" + userCounter++ + "/" + TotalUsers + ")) || Session traversal starting for user:" + userId);
             
             performance.Tick("Acquire");
             List<String> clientIds = adlDao.getClientIds(userId);
-
-            performance.Lap();
+            
+            totalClientIds += clientIds.size();
+            
+            //performance.Lap();
             //get all transactionIds for each clientId
 
             /*a clientId usually is similar to a daily session
              *a user can have multiple daily sessions active
              */
 
+            Integer clientIdCounter = 0;
+            Integer progress = 0;
+            Integer prevProgress = 0;
+            for (int i=0;i<50; i++){
+                System.out.print("x");
+            }
+            System.out.println("|");
+            
             
             for(String clientId:clientIds){
                 List<AugmentedACL> augmentedACLs = aclDao.getFullEfficientOrderedSessionTransactions(clientId);
                 //augmentedACLs list contains all transactions of the given clientId session
-                performance.Lap();
+                //performance.Lap();
+                
+                
+                progress = (int) (++clientIdCounter * (50.0/clientIds.size()));
+                //System.out.print("(" + progress + ")-");
+                for (int i=0;i<progress-prevProgress; i++){
+                    System.out.print("=");
+                }
+                prevProgress = progress;
+                
+                
                 if (augmentedACLs.size()>0){
 
                     //-----------------------------------------------------
@@ -124,7 +161,8 @@ public class SessionTraversal {
                         //shTT.nextSession(augmentedACL);
                         SH.nextSession(augmentedACL);
                     }
-                    realTransitions.addAll(SH.getSessions());
+                    //realTransitions.addAll(SH.getSessions());
+                    //System.out.println("Number of kept transitions: " + SH.getSessions().size() + " // Total: " + augmentedACLs.size());
                     if (generateStatistics) {
                         //System.out.println(SH.getSessions().size());
                         
@@ -133,8 +171,11 @@ public class SessionTraversal {
                         uS.addTotalLogTransitions(augmentedACLs.size()); 
                     }
                     
-
-                    //-----------------------------------------------------
+                    //---------------------------------------------------------
+                    //Save results
+                    prepDao.saveTransactions(SH.getSessions());
+                    
+                    //---------------------------------------------------------
 
                 }  
             }
@@ -144,44 +185,11 @@ public class SessionTraversal {
                 uS = new UserStatistics();
             }
             
-            performance.Tock("Process");
-            
-  
-
-            // Older methods used for benchmarking
-            /*
-            performance.Tick();
-            for(String clientId:clientIds){
-
-                //transactionIds contain all transactions for a give session
-                List<String> transactionIds = njlDao.getTransactionIds(clientId);
-
-                if(transactionIds.size()>0){
-                    List<AccessLog> acl = aclDao.getAccessLogs(transactionIds);
-
-                    for(AccessLog item:acl){
-                        item.getNavajoLog().getTimestamp();
-                        //System.out.println(item.toString());
-                    }   
-                }
-            }
-            performance.Tock("TEST1 - SLOW");
-             */
-
-            /*
-            performance.Tick();
-            for(String clientId:clientIds){
-                //System.out.println("traversing: " + clientId);
-
-                List<AccessLog> accessLogs = aclDao.getAccessLogs_fromNavajoLog(clientId);
-
-                for(AccessLog item:accessLogs){
-                    item.getNavajoLog().getTimestamp();
-                    //System.out.println(item.toString());
-                }
-            }
-            performance.Tock("TEST2 - FAST");
-             */
+            System.out.println("");
+            etaAccumulator = ((etaAccumulator*(userCounter-2)) + performance.Tock("Process"))/(userCounter-1);
+            etaEstimation = etaAccumulator * (TotalUsers-(userCounter-1));
+            etaEstimation = etaEstimation/(1000*60);
+            System.out.println("**************************************************** - - E T A : " + etaEstimation + "minutes");
 
         }
         Long overallTime = overallPerf.Tock("---Overall Performance");
@@ -191,7 +199,7 @@ public class SessionTraversal {
             Integer totalLogTransitions = 0;
             for (UserStatistics tmp_uS:userStatistics.values()){
                 totalTransitions += tmp_uS.getTotalRealTransitions();
-                totalLogTransitions += tmp_uS.getTotalLogTransitions();            
+                totalLogTransitions += tmp_uS.getTotalLogTransitions();
             }
 
             Integer totalSelectedUsers = userStatistics.keySet().size();
@@ -203,15 +211,16 @@ public class SessionTraversal {
             stater("Total transitions from Logs: " + totalLogTransitions );
             stater("Total transitions kept after SessionHandling: " + totalTransitions);
             stater("Kept transitions % : " + keptPerc);
-            stater("Total Selected users: " + totalSelectedUsers);
             stater("-----------------------------------------------");
-            stater("Total execution time: " + overallTime);
+            stater("Total Selected users: " + totalSelectedUsers);
+            stater("Total clientIds traversed: " + totalClientIds);   
+            stater("-----------------------------------------------");
+            stater("Total execution time: " + overallTime/(1000*60) + " mins");
             stater("###############################################");
-            
             
             if (detailedReport){
                 String text = "";
-                Map<String, UserStatistics> sorted = sortByVal(userStatistics);
+                Map<String, UserStatistics> sorted = sortByVal(userStatistics, TotalLog);
                 text = String.format("     %-10s, %-7s, %-7s, %-7s, %-7s","USER", "LOG", "KEPT", "FIRST", "LAST");
                 stater(text);
                 Integer index = 0;
@@ -225,15 +234,46 @@ public class SessionTraversal {
                 Integer N = 10;
                 Integer i = 0;
                 String topKey = "";
+                String dailyMsg = "";
+                stater("Top 10 users");
                 for (String key:sorted.keySet()){
                     if ((i++ < N)){
-                        System.out.println(key);
+                        stater(key);
+                        
+                        //daily info
+                        dailyMsg = "";
+                        
+
+                        
+                        Map<String, Integer> sortedDays = sortByVal(sorted.get(key).getDailyStatistic(), dailyStatComparator);
+                        for (Entry<String, Integer> entrySet:sortedDays.entrySet()){
+                            dailyMsg += entrySet.getKey() + ")" + entrySet.getValue() + "\t";
+                        }
+                        stater(dailyMsg);
                     }else{
                         break;
                     }
                         
                 }
                 
+                Map<String, Integer> totalDailyStats = new HashMap<String, Integer>();
+                
+                for (UserStatistics tmpUs: userStatistics.values()){
+                    Map<String, Integer> sortedTotalDailyStats = sortByVal(tmpUs.getDailyStatistic(), dailyStatComparator);
+                    for(Entry<String, Integer> daily : sortedTotalDailyStats.entrySet()){
+                        Integer previous = 0;
+                        previous = totalDailyStats.get(daily.getKey());
+                        if (previous == null) previous = 0;
+                        totalDailyStats.put(daily.getKey(), previous + daily.getValue());
+                    }
+                }
+                
+                stater("=======================================================");
+                Map<String,Integer> sortedDailyStats = sortByVal(totalDailyStats, dailyStatComparator);
+                for (Entry<String, Integer> tmp:sortedDailyStats.entrySet()){
+                    String textBuf = tmp.getKey() + ")" + tmp.getValue();
+                    stater(textBuf);
+                }
                 
             }
             if(writeStatisticToFile){
@@ -247,7 +287,35 @@ public class SessionTraversal {
             for (Transition trans:realTransitions){
                 //System.out.println(trans);
             }
+            
+            try {
+                Calendar a = Calendar.getInstance();
+                String filename = "serializedObjects/userStats";
+                filename = filename +a.get(Calendar.DAY_OF_MONTH) + (a.get(Calendar.MONTH)+1) 
+                        + a.get(Calendar.MINUTE) + ".ser" ;
+                
+                FileOutputStream fileOut = new FileOutputStream(filename);
+                ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+                
+                objectOut.writeObject(userStatistics);
+                
+                objectOut.flush();
+                objectOut.close();
+                
+                fileOut.close();
+                System.out.println("UserStatistics serialized to file");
+                
+                
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
+        
+        
     }
     
     private void stater(String text){
@@ -283,18 +351,47 @@ public class SessionTraversal {
         }
 
     }
-    private static Map sortByVal(Map unsortedMap){
+    
+    
+    static Comparator TotalLog = new Comparator(){
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            return ((Map.Entry<String, UserStatistics>) o2).getValue().getTotalLogTransitions().compareTo(
+                        ((Map.Entry<String, UserStatistics>) o1).getValue().getTotalLogTransitions());
+        }
+        
+    };
+    
+
+    static Comparator dailyStatComparator = new Comparator(){
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            String[] date1 =  ((Map.Entry<String, Integer>) o1).getKey().split("\\.");
+            String[] date2 = ((Map.Entry<String, Integer>) o2).getKey().split("\\.");
+            if (date1[1].equals(date2[1])){
+                if (Integer.valueOf(date1[0])>Integer.valueOf(date2[0])){
+                    return 1;
+                }else{
+                    return -1;
+                }
+            }else{
+                if (Integer.valueOf(date1[1])>Integer.valueOf(date2[1])){
+                    return 1;
+                }
+                else{
+                    return -1;
+                }
+            }
+
+        }
+    };
+        
+    private static Map sortByVal(Map unsortedMap, Comparator comp){
         List list = new LinkedList(unsortedMap.entrySet());
         
-        Collections.sort(list, new Comparator(){
-
-            @Override
-            public int compare(Object o1, Object o2) {
-                return ((Map.Entry<String, UserStatistics>) o2).getValue().getTotalRealTransitions().compareTo(
-                            ((Map.Entry<String, UserStatistics>) o1).getValue().getTotalRealTransitions());
-            }
-            
-        });
+        Collections.sort(list, comp);
         
         Map sortedMap = new LinkedHashMap();
         
@@ -327,8 +424,11 @@ public class SessionTraversal {
         //decide which users should be kept for the final set
         
         List<String> selectedUserIds = new ArrayList<String>();
-        Integer option = 3;
-        switch(option){
+        if (selectedUserIdsOption==-1){
+            //set default value
+            Integer selectedUserIdsOption = 3;
+        }
+        switch(selectedUserIdsOption){
         
         case 1:
             //OPTION1
@@ -365,91 +465,6 @@ public class SessionTraversal {
         }
     }
     
-    private class UserStatistics{
-        
-        private Integer totalLogTransitions = 0;
-        private Integer totalRealTransitions = 0;
-        private Long firtTimestamp;
-        private Long lastTimestamp;
-        private String firstDay;
-        private String lastDay;
-        
-        private Boolean first = true;
-        
-        private Map<String, Integer> dailyStatistic = new HashMap<String, Integer>();
-
-        public Integer getTotalLogTransitions() {
-            return totalLogTransitions;
-        }
-
-        public void setTotalLogTransitions(Integer totalLogTransitions) {
-            this.totalLogTransitions = totalLogTransitions;
-        }
-
-        public Integer getTotalRealTransitions() {
-            return totalRealTransitions;
-        }
-
-        public String getFirstDay() {
-            return firstDay;
-        }
-
-        public String getLastDay() {
-            return lastDay;
-        }
-
-        public void setTotalRealTransitions(Integer totalRealTransitions) {
-            this.totalRealTransitions = totalRealTransitions;
-        }
-
-        public Long getFirtTimestamp() {
-            return firtTimestamp;
-        }
-
-        public Long getLastTimestamp() {
-            return lastTimestamp;
-        }
-
-        public Map<String, Integer> getDailyStatistic() {
-            return dailyStatistic;
-        }
-
-        
-        public void setDayStatistic(String day, Integer numOfTrans){
-            this.dailyStatistic.put(day, numOfTrans);
-        }
-        
-        public void addDayStatistic(Long timestamp, Integer numfOfTrans){
-            Calendar a = Calendar.getInstance();
-            a.setTimeInMillis(timestamp);
-            String day = a.get(Calendar.DAY_OF_MONTH) + "." + a.get(Calendar.MONTH);
-            
-            //keeping first and last timestamps and days
-            if (first){
-                firtTimestamp = timestamp;
-                firstDay = day;
-                first = false;
-            }
-            lastTimestamp = timestamp;
-            lastDay = day;
-            
-            //Keeping statistics
-            if (!this.dailyStatistic.containsKey(day)){
-                this.dailyStatistic.put(day, numfOfTrans);
-            }else{
-                this.dailyStatistic.put(day, this.dailyStatistic.get(day)+numfOfTrans);
-            }
-        }
-        
-        public void addTotalRealTransitions(Integer numOfTrans){
-            this.totalRealTransitions += numOfTrans;
-        }
-        
-        public void addTotalLogTransitions(Integer numOfTrans){
-            this.totalLogTransitions += numOfTrans;
-        }
-        
-    }
 }
 
 

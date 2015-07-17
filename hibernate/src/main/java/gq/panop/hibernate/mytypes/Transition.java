@@ -84,7 +84,43 @@ public class Transition {
                 + ", userId=" + userId + ", transactionId=" + transactionId
                 + ", subSessionId=" + subSessionId + "]";
     }
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((referer == null) ? 0 : referer.hashCode());
+        result = prime * result + ((target == null) ? 0 : target.hashCode());
+        result = prime * result + ((userId == null) ? 0 : userId.hashCode());
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Transition other = (Transition) obj;
+        if (referer == null) {
+            if (other.referer != null)
+                return false;
+        } else if (!referer.equals(other.referer))
+            return false;
+        if (target == null) {
+            if (other.target != null)
+                return false;
+        } else if (!target.equals(other.target))
+            return false;
+        if (userId == null) {
+            if (other.userId != null)
+                return false;
+        } else if (!userId.equals(other.userId))
+            return false;
+        return true;
+    }
 
+    
     
 
 

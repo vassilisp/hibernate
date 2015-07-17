@@ -21,14 +21,26 @@ public class App
         //TransitionGraph tg = new TransitionGraph();
         //tg.tester();
         
+        UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
+        usa.start();
+        
+        
+        Integer result = HibernateUtil.hqlTruncate("Preprocess");
+        System.out.println(result);
+        
+        //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
+        if (result==-1){
+            System.out.println(HibernateUtil.hqlCreatePreProcessTable("Preprocess"));
+        }
+        
         SessionTraversal st = new SessionTraversal();
         List<String>requestedUserIds = new ArrayList<String>();
-        requestedUserIds.add("mbe");
-        requestedUserIds.add("tom");
-        st.setupRequestedUserIds(requestedUserIds);
+        //requestedUserIds.add("mbe");
+        //requestedUserIds.add("tom");
+        //st.setupRequestedUserIds(requestedUserIds);
         st.start();
         
-        Playground.Start();        
+        //Playground.Start();        
         
         //IntervalFreq.generate();
         
@@ -47,10 +59,10 @@ public class App
         HibernateUtil.getSessionFactory().close();
         
         
-        String test = "GET /fecru/static/mzfr4p/2static/style/jquery/theme/concat.commonScriptAndStyleIncludes.4a8d31baefacdc3a65a699257c20ccaf.cache.css HTTP/1.1";
+        //String test = "GET /fecru/static/mzfr4p/2static/style/jquery/theme/concat.commonScriptAndStyleIncludes.4a8d31baefacdc3a65a699257c20ccaf.cache.css HTTP/1.1";
         
-        System.out.println(MiscUtil.custom_Parser(test,2));
-        System.out.println(MiscUtil.custom_Parser(test, 3));
+        //System.out.println(MiscUtil.custom_Parser(test,2));
+        //System.out.println(MiscUtil.custom_Parser(test, 3));
 
     }
     

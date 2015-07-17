@@ -27,6 +27,8 @@ public class SessionHandlerUniversal implements SessionHandler {
     private Boolean generateGraphs = false;
     private Boolean debugMode = false;
     
+    private Integer tokenizer = 0;
+    
     
     private List<Transition> transitions = new ArrayList<Transition>();
     
@@ -77,9 +79,9 @@ public class SessionHandlerUniversal implements SessionHandler {
         target = MiscUtil.URLTargetCleaner(target);
         
         Long timestamp = session.getTimestamp();                
-        
-     
-        Boolean isImage = (((target.endsWith(".png")||referer.endsWith(".png")) && discardImages));
+               
+        Boolean isImage = (((target.toLowerCase().endsWith(".png")||referer.toLowerCase().endsWith(".png") ||referer.toLowerCase().endsWith(".jpg") ||
+                referer.toLowerCase().endsWith(".gif")) && discardImages));
         Boolean isCSS = (target.contains("css")) || (referer.contains("css"));
         Boolean isICO = (target.contains(".ico") || referer.contains(".ico")); 
         Boolean specialReq = false;
@@ -88,6 +90,11 @@ public class SessionHandlerUniversal implements SessionHandler {
             customDeb("AUTOREQUEST DETECTED BY TYPE");
         }
 
+        if (tokenizer>0){
+            referer = MiscUtil.custom_Parser(referer, tokenizer);
+            target = MiscUtil.custom_Parser(referer, tokenizer);
+        }
+        
         String transactionId = session.getAccessLog().getTransactionId();
         /*
         Transition currentTransition = new Transition(referer, target, timestamp);
@@ -438,6 +445,14 @@ public class SessionHandlerUniversal implements SessionHandler {
 
     public Boolean getSearchHiddenConnections() {
         return SearchHiddenConnections;
+    }
+
+    public Integer getTokenizer() {
+        return tokenizer;
+    }
+
+    public void setTokenizer(Integer tokenizer) {
+        this.tokenizer = tokenizer;
     }
 
     public void setSearchHiddenConnections(Boolean searchHiddenConnections) {

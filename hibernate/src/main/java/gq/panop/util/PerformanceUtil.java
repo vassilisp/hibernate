@@ -39,6 +39,10 @@ public class PerformanceUtil {
 	    return returnPerformance(" ~[[Lap]]", false);
 	}
 	
+	public long Lap(String info){
+	    return returnPerformance(info +" ~[[Lap]]", false);
+	}
+	
 	private long returnPerformance(String info, Boolean close){
 	    if (set){
             result = getTime() - time;

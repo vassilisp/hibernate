@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Query;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
@@ -26,34 +28,34 @@ public class AccessLogDao {
     	query.setString("transactionId", transactionId);
     	
 
-		return (AccessLog) HibernateUtil.performUniqueStatelessQuery(session, query);
+    	return (AccessLog) HibernateUtil.performUniqueStatelessQuery(session, query);
 	}
-	
-	   public AccessLog getAccessLog2(String transactionId){
-	        
-           StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
-           
-	       String queryString = "From AccessLog where transactionId = :transactionId";
-	        
-	        Query query = session.createQuery(queryString);
-	        query.setString("transactionId", transactionId);
 
-	        Transaction tx = null;
-	        
-	        AccessLog result = null;
-	        
-	        try{
-	            tx = session.beginTransaction();
-	            result = (AccessLog) query.uniqueResult();
-	        }catch (Throwable ex){
-	            if (tx!=null) tx.rollback();
-	            ex.printStackTrace();
-	        }finally {
-	            session.close();
-	        }
-	        return result;
+	public AccessLog getAccessLog2(String transactionId){
+
+	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+
+	    String queryString = "From AccessLog where transactionId = :transactionId";
+
+	    Query query = session.createQuery(queryString);
+	    query.setString("transactionId", transactionId);
+
+	    Transaction tx = null;
+
+	    AccessLog result = null;
+
+	    try{
+	        tx = session.beginTransaction();
+	        result = (AccessLog) query.uniqueResult();
+	    }catch (Throwable ex){
+	        if (tx!=null) tx.rollback();
+	        ex.printStackTrace();
+	    }finally {
+	        session.close();
 	    }
-	
+	    return result;
+	}
+
 	public List<AccessLog> getAccessLogs(List<String> transactionIds){
 
 	    Session session = HibernateUtil.getSessionFactory().openSession();
@@ -184,6 +186,47 @@ public class AccessLogDao {
             
             List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);
             
+            
+            //List<ResultingSetfromComplex> rSet = new ArrayList<ResultingSetfromComplex>();    
+            //tmp.forEach(n -> rSet.add(new ResultingSetfromComplex(n[0].toString(), (Long)((BigInteger)n[1]).longValue(), "NOTGIVEN", n[2].toString(),n[3].toString(),n[4].toString() )));
+            
+            List<AugmentedACL> aAcl = new ArrayList<AugmentedACL>();
+            for(Object[] obj:tmp){
+                AugmentedACL aclItem = new AugmentedACL();
+                try{
+                aclItem.setAccessLog((AccessLog) obj[0]);
+                aclItem.setTimestamp(((BigInteger) obj[1]).longValueExact());
+                aclItem.setClientId((String) obj[2]);
+                }catch(Throwable e){
+                    System.err.println(e);
+                }
+                
+                aAcl.add(aclItem);
+                
+            }
+            
+            return aAcl;
+        }
+       
+       public List<AugmentedACL> nextTransactionsStream(Boolean setup, String clientId){
+           
+           StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
+           
+            
+           //String queryString = "SELECT acl.transactionId, acl.navajoLog.timestamp, acl.referer, acl.requestedResource, acl.navajoLog.clientId "
+            //        + "FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+           
+           String queryString = "SELECT acl, acl.navajoLog.timestamp, acl.navajoLog.clientId "
+                           + "FROM AccessLog acl WHERE acl.navajoLog.clientId= :clientId GROUP BY acl.transactionId ORDER BY acl.requestDate";
+            Query query = session.createQuery(queryString);
+            query.setReadOnly(true);
+            query.setString("clientId", clientId);
+            query.setFetchSize(Integer.MIN_VALUE);
+            ScrollableResults scrollable = query.scroll(ScrollMode.FORWARD_ONLY);
+            
+            List<Object[]> tmp = HibernateUtil.performSimpleStatelessQuery(session, query);
+            
+            Object[] entry = scrollable.get();
             
             //List<ResultingSetfromComplex> rSet = new ArrayList<ResultingSetfromComplex>();    
             //tmp.forEach(n -> rSet.add(new ResultingSetfromComplex(n[0].toString(), (Long)((BigInteger)n[1]).longValue(), "NOTGIVEN", n[2].toString(),n[3].toString(),n[4].toString() )));
