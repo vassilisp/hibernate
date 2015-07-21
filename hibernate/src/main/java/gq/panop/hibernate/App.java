@@ -22,18 +22,20 @@ public class App
         //tg.tester();
         
         UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
-        usa.start();
+        //usa.start();
         
+        //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
         
         Integer result = HibernateUtil.hqlTruncate("Preprocess");
         System.out.println(result);
         
-        //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
+
         if (result==-1){
             System.out.println(HibernateUtil.hqlCreatePreProcessTable("Preprocess"));
         }
         
-        SessionTraversal st = new SessionTraversal();
+        String processId = null;
+        SessionTraversal st = new SessionTraversal(processId);
         List<String>requestedUserIds = new ArrayList<String>();
         //requestedUserIds.add("mbe");
         //requestedUserIds.add("tom");

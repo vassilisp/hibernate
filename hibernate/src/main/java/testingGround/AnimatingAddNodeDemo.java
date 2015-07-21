@@ -1,4 +1,4 @@
-package gq.panop.hibernate;
+package testingGround;
 
 
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
@@ -22,8 +22,6 @@ import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
 import edu.uci.ics.jung.visualization.layout.LayoutTransition;
 import edu.uci.ics.jung.visualization.renderers.Renderer;
 import edu.uci.ics.jung.visualization.util.Animator;
-import gq.panop.hibernate.JungGraph.MyEdge;
-import gq.panop.hibernate.JungGraph.MyNode;
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.model.AccessLog;
 import gq.panop.util.MiscUtil;

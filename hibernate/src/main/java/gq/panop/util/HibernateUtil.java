@@ -174,7 +174,8 @@ public class HibernateUtil {
 	      
 	    String hql = String.format("CREATE TABLE IF NOT EXISTS %s ",myTable);
 	    hql += "( "
-	            + "transactionId VARCHAR(255),"
+	            + "processID VARCHAR(20),"
+	            + " transactionId VARCHAR(255),"
 	            + " userId VARCHAR(255),"
 	            + " referer TEXT,"
 	            + " requestedResource TEXT,"
@@ -184,7 +185,10 @@ public class HibernateUtil {
 	            + " clientIP VARCHAR(255),"
 	            + " userAgent TEXT,"
 	            + " statusCode int(11),"
-	            + " INDEX trans_index (transactionId)"
+	            + " transitionID VARCHAR(20),"
+	            + " targetID VARCHAR(20),"
+	            + " INDEX trans_index (transactionId),"
+	            + " INDEX processID_index (processID)"
 	            + ");";
 	            
 	    Session session = HibernateUtil.getSessionFactory().openSession();
@@ -195,4 +199,28 @@ public class HibernateUtil {
 	    session.close();
 	    return result;
 	}
+	
+	   public static int hqlCreateMLTable(String myTable){
+	          
+	        String hql = String.format("CREATE TABLE IF NOT EXISTS %s ",myTable);
+	        hql += "( "
+	                + "processID VARCHAR(20),"
+	                
+	                + " userId VARCHAR(255),"
+	                + " clientId VARCHAR(255),"
+	                + " subSession VARCHAR(50),"
+	                + " transitions TEXT,"
+	                + " targets TEXT,"
+	                + " total INT(10),"
+	                + " INDEX processID_index (processID,userId,divider)"	                
+	                + ");";
+   
+	        Session session = HibernateUtil.getSessionFactory().openSession();
+	        Query query = session.createSQLQuery(hql);
+	        Integer result = -1;
+	        result = query.executeUpdate();
+	        session.flush();
+	        session.close();
+	        return result;
+	   }
 }

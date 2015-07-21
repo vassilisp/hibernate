@@ -1,6 +1,6 @@
-package gq.panop.hibernate;
+package SessionHandlers;
 
-import gq.panop.hibernate.SessionHandlerTimeThreshold.Node;
+import gq.panop.hibernate.JungGraphCreator;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;
@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import SessionHandlers.SessionHandlerTimeThreshold.Node;
 
 public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
 

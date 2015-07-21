@@ -199,6 +199,7 @@ public class AccessLogDao {
                 aclItem.setClientId((String) obj[2]);
                 }catch(Throwable e){
                     System.err.println(e);
+                    System.exit(99);
                 }
                 
                 aAcl.add(aclItem);

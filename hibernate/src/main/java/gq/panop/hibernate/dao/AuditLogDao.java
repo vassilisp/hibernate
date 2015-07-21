@@ -99,7 +99,7 @@ public class AuditLogDao {
 	public List<String> getClientIds(String userId){
 	    
 	    StatelessSession session = HibernateUtil.getSessionFactory().openStatelessSession();
-	    String queryString = "SELECT DISTINCT al.clientId FROM AuditLog al WHERE al.userId=:userId";
+	    String queryString = "SELECT DISTINCT al.clientId FROM AuditLog al WHERE al.userId=:userId AND NOT al.clientId='null'";
 	    Query query = session.createQuery(queryString);
 	    query.setString("userId", userId);
 	    return HibernateUtil.performSimpleStatelessQuery(session, query);

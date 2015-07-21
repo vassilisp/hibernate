@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD//EN"
+ "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+    <class name="gq.panop.hibernate.model.MLentry" table="MLtable">
+      <id name="processID" > <generator class="assigned"/></id>
+      <property name="userId"/>
+      <property name="clientId"/>
+      <property name="subSessionId"/>
+      <property name="transitions"/>
+      <property name="targets"/>  
+      <property name="total"/>
+   </class>
+</hibernate-mapping>

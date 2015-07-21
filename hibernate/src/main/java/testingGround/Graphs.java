@@ -1,4 +1,4 @@
-package gq.panop.hibernate;
+package testingGround;
 
 import gq.panop.hibernate.dao.AccessLogDao;
 import gq.panop.hibernate.dao.AuditLogDao;

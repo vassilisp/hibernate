@@ -10,6 +10,8 @@ public class Transition {
     
     private String subSessionId;
 
+    private String transitionID;
+    private String targetID;
 
     public Transition(String referer, String target, Long timestamp) {
         super();
@@ -77,13 +79,31 @@ public class Transition {
     public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
+
+    
+    
+    public String getTransitionID() {
+        return transitionID;
+    }
+    public void setTransitionID(String transitionID) {
+        this.transitionID = transitionID;
+    }
+    public String getTargetID() {
+        return targetID;
+    }
+    public void setTargetID(String targetID) {
+        this.targetID = targetID;
+    }
     @Override
     public String toString() {
         return "Transition [referer=" + referer + ", target=" + target
                 + ", timestamp=" + timestamp + ", sessionId=" + sessionId
                 + ", userId=" + userId + ", transactionId=" + transactionId
-                + ", subSessionId=" + subSessionId + "]";
+                + ", subSessionId=" + subSessionId + ", transitionID="
+                + transitionID + ", targetID=" + targetID + "]";
     }
+
+    
     @Override
     public int hashCode() {
         final int prime = 31;

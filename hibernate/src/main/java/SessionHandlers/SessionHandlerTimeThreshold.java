@@ -1,5 +1,6 @@
-package gq.panop.hibernate;
+package SessionHandlers;
 
+import gq.panop.hibernate.JungGraphCreator;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;

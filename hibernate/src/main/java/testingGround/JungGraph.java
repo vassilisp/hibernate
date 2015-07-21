@@ -1,4 +1,4 @@
-package gq.panop.hibernate;
+package testingGround;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -356,7 +356,7 @@ public class JungGraph extends javax.swing.JApplet{
     }
     
     
-    class MyNode {
+    public class MyNode {
         String id;
         public MyNode(String id) {
             this.id = id;
@@ -372,7 +372,7 @@ public class JungGraph extends javax.swing.JApplet{
         }        
     }
     
-    class MyEdge {
+    public class MyEdge {
         Long interval;
         Long timestamp;
         String label;

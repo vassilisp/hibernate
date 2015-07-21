@@ -30,9 +30,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Iterator;
+
+import SessionHandlers.SessionHandler;
+import SessionHandlers.SessionHandlerUniversal;
 
 
 public class SessionTraversal {
@@ -47,6 +51,23 @@ public class SessionTraversal {
     private Boolean detailedReport = true;
     private Integer selectedUserIdsOption = -1; //default
     //=========================================================================
+    
+    private String processId;
+    
+    public SessionTraversal(String processId){
+        if (processId==null){
+            Random rand = new Random();
+            String ID = "";
+            
+            for (int i=0;i<4; i++){
+                ID += rand.nextInt(10);
+                
+            }
+            this.processId = "pro" + ID;
+        }else{
+            this.processId = processId;
+        }
+    }
     
     public void setupRequestedUserIds(List<String> requestedUserIds){
         this.requestedUserIds = requestedUserIds;
@@ -87,12 +108,13 @@ public class SessionTraversal {
 
         //SessionHandler settings ---------------------------------------------
         SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 2000);
-        sHU.setGenerateGraphs(false);
+        
         sHU.setDiscardImages(true);
         sHU.setDiscardParameters(true);
+        sHU.setTokenizer(0);
         sHU.setSearchHiddenConnections(false);
         sHU.setDebugMode(false);
-        sHU.setTokenizer(0);
+        sHU.setGenerateGraphs(false);
         //---------------------------------------------------------------------
 
         //Pick Session handlder
@@ -107,6 +129,7 @@ public class SessionTraversal {
         Integer userCounter = 1;
         
         Integer totalClientIds = 0;
+        Integer totalActiveClientIds = 0;
         
         Long etaEstimation = 0L;
         Long etaAccumulator = 0L;
@@ -154,6 +177,7 @@ public class SessionTraversal {
 
                     //-----------------------------------------------------
                     
+                    totalActiveClientIds++;
                     
                     SH.newUser(userId, clientId);
                     //Session processing
@@ -173,7 +197,7 @@ public class SessionTraversal {
                     
                     //---------------------------------------------------------
                     //Save results
-                    prepDao.saveTransactions(SH.getSessions());
+                    prepDao.saveTransactions(SH.getSessions(), processId);
                     
                     //---------------------------------------------------------
 
@@ -189,7 +213,7 @@ public class SessionTraversal {
             etaAccumulator = ((etaAccumulator*(userCounter-2)) + performance.Tock("Process"))/(userCounter-1);
             etaEstimation = etaAccumulator * (TotalUsers-(userCounter-1));
             etaEstimation = etaEstimation/(1000*60);
-            System.out.println("**************************************************** - - E T A : " + etaEstimation + "minutes");
+            System.out.println("**************************************************** - - E T A : " + etaEstimation + "min");
 
         }
         Long overallTime = overallPerf.Tock("---Overall Performance");
@@ -207,26 +231,29 @@ public class SessionTraversal {
             Long keptPerc = 100 * totalTransitions.longValue()/totalLogTransitions.longValue();
             stater("###############################################");
             stater("STATISTICS");
+            stater("USED PARAMETERS: "); //TODO FILL IN THE PARAMETERS OF THE SESSION HANDLER
+            stater("PROCESS ID: " + processId);
             stater("-----------------------------------------------");
             stater("Total transitions from Logs: " + totalLogTransitions );
             stater("Total transitions kept after SessionHandling: " + totalTransitions);
             stater("Kept transitions % : " + keptPerc);
             stater("-----------------------------------------------");
             stater("Total Selected users: " + totalSelectedUsers);
-            stater("Total clientIds traversed: " + totalClientIds);   
+            stater("Total clientIds traversed: " + totalClientIds); 
+            stater("Total clientIds active: " + totalActiveClientIds);
             stater("-----------------------------------------------");
-            stater("Total execution time: " + overallTime/(1000*60) + " mins");
+            stater("Total execution time: " + overallTime/(1000*60) + " min");
             stater("###############################################");
             
             if (detailedReport){
                 String text = "";
                 Map<String, UserStatistics> sorted = sortByVal(userStatistics, TotalLog);
-                text = String.format("     %-10s, %-7s, %-7s, %-7s, %-7s","USER", "LOG", "KEPT", "FIRST", "LAST");
+                text = String.format("     %-10s, %-7s, %-7s, %-7s, %-7s, %-7s","USER", "LOG", "KEPT", "ACTIVE","FIRST", "LAST");
                 stater(text);
                 Integer index = 0;
                 for (Map.Entry<String, UserStatistics> set :sorted.entrySet()){
-                    text = String.format("%-3d) %-10s, %-7s, %-7s, %-7s, %-7s" ,index++, set.getKey(), set.getValue().getTotalLogTransitions().toString(),
-                            set.getValue().getTotalRealTransitions(), set.getValue().getFirstDay(), set.getValue().getLastDay());
+                    text = String.format("%-3d) %-10s, %-7s, %-7s, %-7s, %-7s, %-7s" ,index++, set.getKey(), set.getValue().getTotalLogTransitions().toString(),
+                            set.getValue().getTotalRealTransitions(), set.getValue().getNumberOfActiveDays(), set.getValue().getFirstDay(), set.getValue().getLastDay());
                     stater(text);
                 }
 
@@ -235,19 +262,16 @@ public class SessionTraversal {
                 Integer i = 0;
                 String topKey = "";
                 String dailyMsg = "";
+                stater("_______________________________________________________");
                 stater("Top 10 users");
                 for (String key:sorted.keySet()){
                     if ((i++ < N)){
-                        stater(key);
                         
-                        //daily info
                         dailyMsg = "";
-                        
-
-                        
+                        //daily info
                         Map<String, Integer> sortedDays = sortByVal(sorted.get(key).getDailyStatistic(), dailyStatComparator);
                         for (Entry<String, Integer> entrySet:sortedDays.entrySet()){
-                            dailyMsg += entrySet.getKey() + ")" + entrySet.getValue() + "\t";
+                            dailyMsg += key + ", " + entrySet.getKey() + ", " + entrySet.getValue() + System.lineSeparator();
                         }
                         stater(dailyMsg);
                     }else{
@@ -271,7 +295,7 @@ public class SessionTraversal {
                 stater("=======================================================");
                 Map<String,Integer> sortedDailyStats = sortByVal(totalDailyStats, dailyStatComparator);
                 for (Entry<String, Integer> tmp:sortedDailyStats.entrySet()){
-                    String textBuf = tmp.getKey() + ")" + tmp.getValue();
+                    String textBuf = tmp.getKey() + ") " + tmp.getValue();
                     stater(textBuf);
                 }
                 

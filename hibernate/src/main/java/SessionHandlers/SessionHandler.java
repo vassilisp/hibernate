@@ -1,4 +1,4 @@
-package gq.panop.hibernate;
+package SessionHandlers;
 
 import java.util.List;
 

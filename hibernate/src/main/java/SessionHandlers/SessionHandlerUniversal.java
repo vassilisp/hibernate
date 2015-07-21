@@ -1,11 +1,14 @@
-package gq.panop.hibernate;
+package SessionHandlers;
 
+import gq.panop.hibernate.jungGraphCreatorStringVertices;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
 import gq.panop.util.MiscUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SessionHandlerUniversal implements SessionHandler {
 
@@ -29,8 +32,12 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     private Integer tokenizer = 0;
     
-    
     private List<Transition> transitions = new ArrayList<Transition>();
+    
+    private Map<String, String> transitionMap = new HashMap<String, String>();
+    private Integer uniqueTransitionCounter = 0;
+    private Map<String, String> targetMap = new HashMap<String, String>();
+    private Integer uniqueTargetCounter = 0;
     
     private List<Node> loadedNodes = new ArrayList<Node>();
     
@@ -279,35 +286,6 @@ public class SessionHandlerUniversal implements SessionHandler {
             lastUniversalRequest = timestamp;
         }
         //---------------------------------------------------------------------
-
-
-        /*
-        if (targetIndex>0){
-            if (revisitInterval>revisitedThreshold){
-                updateTarget(loadedTarget, timestamp);
-            }
-        }else{
-            createNode(currentTargetNode, timestamp);
-        }
-        
-        if (refererIndex>=0){
-            updateReferer(loadedReferer, timestamp);
-             
-            if (interval>autoRequestThreshold){
-                if (targetIndex<0){
-                    //add InConnection
-                    InConnection inConnection = new InConnection(loadedReferer, true, timestamp, transactionId);
-                    currentTargetNode.getInConnections().add(inConnection);
-                    customDeb("ADDED inConnection to TARGET");
-                }
-              //keep with Special check
-            }
-        }else{
-            createNode(currentRefererNode, timestamp);
-            //keep with Special check
-        }
-        */
-        
         
     }
     
@@ -394,6 +372,14 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     private void keep(Transition transition){
         customDeb("*****   " + internalCounter++);
+        
+        
+        String transitionID = transitionVectorizer(transition);
+        String targetID = targetVectorizer(transition);
+        
+        transition.setTransitionID(transitionID);
+        transition.setTargetID(targetID);
+        
         transitions.add(transition);
         if (generateGraphs){
             jgc.AddTransition(transition);
@@ -411,6 +397,44 @@ public class SessionHandlerUniversal implements SessionHandler {
             
             keep(transition);
         }
+    }
+    
+    private String transitionVectorizer(Transition transition){
+        String referer = transition.getReferer();
+        String target = transition.getTarget();
+        
+        String transitionalSearch = referer + ">>>" + target;
+        
+        String searchTransitionResult = transitionMap.get(transitionalSearch);
+        
+        String result;
+        if (searchTransitionResult == null){
+            //create new transitionID and put in dictionary
+            result = "T" + uniqueTransitionCounter++;
+            transitionMap.put(transitionalSearch, result);
+        }else{
+            //retrieve and assign
+            result = searchTransitionResult;
+        }
+        
+        return result;
+        
+    }
+    
+    private String targetVectorizer(Transition transition){
+        String target = transition.getTarget();
+        
+        String searchTargetResult = targetMap.get(target);
+        
+        String result;
+        if (searchTargetResult == null){
+            result = "P" + uniqueTargetCounter++;
+            targetMap.put(target, result);
+        }else{
+            result = searchTargetResult;
+        }
+        
+        return result;
     }
     
     private void customDeb(String text){
