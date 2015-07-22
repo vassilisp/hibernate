@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class SessionHandlerTimeThreshold implements SessionHandler{
+public abstract class SessionHandlerTimeThreshold implements SessionHandler{
 
 
     private String userId;

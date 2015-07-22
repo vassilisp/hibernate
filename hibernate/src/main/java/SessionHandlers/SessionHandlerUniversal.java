@@ -1,5 +1,6 @@
 package SessionHandlers;
 
+import gq.panop.hibernate.URLNormalizer;
 import gq.panop.hibernate.UniqueIDAssigner;
 import gq.panop.hibernate.jungGraphCreatorStringVertices;
 import gq.panop.hibernate.mytypes.AugmentedACL;
@@ -15,23 +16,27 @@ public class SessionHandlerUniversal implements SessionHandler {
 
     private Integer internalCounter = 0;
     
-    private Integer subSessionThreshold = 1000 * 60 * 25; //ms * sec * min
-    private Integer revisitedThreshold = 1000 * 2;//
-    private Integer autoRequestThreshold = 1500; //ms
     private String userId;
     private String clientId;
 
     private Long lastUniversalRequest = 0L;
     private String lastSubSessionId = "";
     
-    private Boolean SearchHiddenConnections = true;
-    private Boolean discardParameters = false;
-    private Boolean discardImages = true;
-    public Boolean acceptUnlinkedNodes = true;
+//==========================PARAMS=============================================
+    private Integer subSessionThreshold = 1000 * 60 * 25; //ms * sec * min
+    private Integer revisitedThreshold = 1000 * 2;//
+    private Integer autoRequestThreshold = 1500; //ms
+
+    private Boolean SearchHiddenConnections = false;
+  
     private Boolean generateGraphs = false;
     private Boolean debugMode = false;
     
+    private Boolean discardParameters = true;
+    private Boolean discardImages = true;
     private Integer tokenizer = 0;
+    private Boolean discardCSSICO = true;
+//=============================================================================    
     
     private List<Transition> transitions = new ArrayList<Transition>();
     
@@ -41,6 +46,8 @@ public class SessionHandlerUniversal implements SessionHandler {
     
 
     private Integer subSessionCounter=0;
+    
+    private URLNormalizer urlN = new URLNormalizer(discardParameters, tokenizer, discardImages);
     
     private jungGraphCreatorStringVertices jgc = null;
     //private jungGraphCreatorStringVertices jgc = null;
@@ -74,7 +81,12 @@ public class SessionHandlerUniversal implements SessionHandler {
     }
     
 
+    public void setURLNormalizer(Boolean discardParameters, Integer tokenizer, Boolean discardImages){
+        urlN = new URLNormalizer(discardParameters, tokenizer, discardImages);
+    }
+    
     public void nextSession(AugmentedACL session){
+        //---------------URL normalizer----------------------------------------
         String referer = session.getAccessLog().getReferer();
         
         String target = session.getAccessLog().getRequestedResource();
@@ -82,8 +94,7 @@ public class SessionHandlerUniversal implements SessionHandler {
         
         referer = MiscUtil.URLRefererCleaner(referer);
         target = MiscUtil.URLTargetCleaner(target);
-        
-        Long timestamp = session.getTimestamp();                
+                       
                
         Boolean isImage = (((target.toLowerCase().endsWith(".png")||referer.toLowerCase().endsWith(".png") ||referer.toLowerCase().endsWith(".jpg") ||
                 referer.toLowerCase().endsWith(".gif")) && discardImages));
@@ -100,12 +111,8 @@ public class SessionHandlerUniversal implements SessionHandler {
             target = MiscUtil.custom_Parser(referer, tokenizer);
         }
         
-        String transactionId = session.getAccessLog().getTransactionId();
-        /*
-        Transition currentTransition = new Transition(referer, target, timestamp);
-        currentTransition.setTransactionId(transactionId);
-        currentTransition.setUserId(userId);
-         */
+        
+
 
         if (discardParameters){
             if(referer.indexOf("?")>0){
@@ -115,6 +122,13 @@ public class SessionHandlerUniversal implements SessionHandler {
                 target = target.substring(0, target.indexOf("?"));
             }
         }
+        //---------------------------------------------------------------------
+        
+        
+        Long timestamp = session.getTimestamp();
+        String transactionId = session.getAccessLog().getTransactionId();
+        
+        
         Node currentTargetNode = new Node(target, session.getTimestamp());
         Node currentRefererNode = new Node(referer, session.getTimestamp());
         
@@ -399,7 +413,40 @@ public class SessionHandlerUniversal implements SessionHandler {
         }
     }
     
-    
+    public String getParameterString(){
+     
+        String paramString = "";
+        if (discardParameters){
+            paramString += "DParam-";
+        }else{
+            paramString += "KParam-";
+        }
+        
+        if (discardImages){
+            paramString += "DImg-";
+        }else{
+            paramString += "KImg-";
+        }
+        
+        paramString += "Tok" + tokenizer.toString() + "-";
+        
+        if (discardCSSICO){
+            paramString += "DCss-";
+        }else{
+            paramString += "KCss-";
+        }
+
+        if (SearchHiddenConnections){
+            paramString += "FindHidden-";
+        }else{
+            paramString += "DropHidden-";
+        }
+        
+        paramString += System.lineSeparator();
+        paramString += "//" + "autoT:" + autoRequestThreshold +" | revT:" + revisitedThreshold + " |subSesT: " + subSessionThreshold;
+        
+        return paramString;
+    }
     private void graphAdd(Node e){
         loadedNodes.add(e);
     }

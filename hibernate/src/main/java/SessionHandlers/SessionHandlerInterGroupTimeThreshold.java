@@ -14,7 +14,7 @@ import java.util.Set;
 
 import SessionHandlers.SessionHandlerTimeThreshold.Node;
 
-public class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
+public abstract class SessionHandlerInterGroupTimeThreshold implements SessionHandler{
 
     private Integer internalCounter = 0;
     

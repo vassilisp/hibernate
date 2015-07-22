@@ -52,6 +52,9 @@ public class SessionTraversal {
     private Integer selectedUserIdsOption = -1; //default
     //=========================================================================
     
+    private SessionHandler SH;
+    
+    
     private String processId;
     
     public SessionTraversal(String processId){
@@ -59,7 +62,7 @@ public class SessionTraversal {
             Random rand = new Random();
             String ID = "";
             
-            for (int i=0;i<4; i++){
+            for (int i=0;i<5; i++){
                 ID += rand.nextInt(10);
                 
             }
@@ -69,11 +72,54 @@ public class SessionTraversal {
         }
     }
     
+    public void setupSessionHandler(SessionHandler givenSH){
+        this.SH = givenSH;
+    }
+    
     public void setupRequestedUserIds(List<String> requestedUserIds){
         this.requestedUserIds = requestedUserIds;
     }
     
+    public Boolean testCorrectSessionHandlerSetup(){
+        if (SH==null){
+            return false;
+        }
+        return true;
+    }
+    
+    
+    public void setupEVERYTHING(String pipeline){
+        //TODO
+    }
+    
+    
+    public void setDefaultSessionHandler(){
+        //SessionHandlerTimeThreshold shTT = new SessionHandlerTimeThreshold(0, 1250);
+        //shTT.setParallelDraw(true);
+        
+        //SessionHandlerInterGroupTimeThreshold shigTT = new SessionHandlerInterGroupTimeThreshold(1000*60*20, 1000);
+        //shigTT.setParallelDraw(true);
+
+        //SessionHandler settings ---------------------------------------------
+        SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 2000);
+        sHU.setDiscardImages(true);
+        sHU.setDiscardParameters(true);
+        sHU.setTokenizer(0);
+        sHU.setSearchHiddenConnections(false);
+        sHU.setDebugMode(false);
+        sHU.setGenerateGraphs(false);
+        //---------------------------------------------------------------------
+
+        //Pick Session handlder
+        this.SH = sHU;
+    }
+    
     public void start(){
+        
+        if(!testCorrectSessionHandlerSetup()){
+            setDefaultSessionHandler();
+        }
+        
         PerformanceUtil performance = new PerformanceUtil("ms");
         PerformanceUtil overallPerf = new PerformanceUtil("ms");
         
@@ -100,25 +146,7 @@ public class SessionTraversal {
          
         Map<String, UserStatistics> userStatistics = new HashMap<String, UserStatistics>();
                 
-        //SessionHandlerTimeThreshold shTT = new SessionHandlerTimeThreshold(0, 1250);
-        //shTT.setParallelDraw(true);
-        
-        //SessionHandlerInterGroupTimeThreshold shigTT = new SessionHandlerInterGroupTimeThreshold(1000*60*20, 1000);
-        //shigTT.setParallelDraw(true);
-
-        //SessionHandler settings ---------------------------------------------
-        SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 2000);
-        
-        sHU.setDiscardImages(true);
-        sHU.setDiscardParameters(true);
-        sHU.setTokenizer(0);
-        sHU.setSearchHiddenConnections(false);
-        sHU.setDebugMode(false);
-        sHU.setGenerateGraphs(false);
-        //---------------------------------------------------------------------
-
-        //Pick Session handlder
-        SessionHandler SH = sHU;
+       
 
         //List to hold kept (processed transitions)
         List<Transition> realTransitions = new ArrayList<Transition>();
@@ -228,10 +256,11 @@ public class SessionTraversal {
 
             Integer totalSelectedUsers = userStatistics.keySet().size();
             
+            
             Long keptPerc = 100 * totalTransitions.longValue()/totalLogTransitions.longValue();
             stater("###############################################");
             stater("STATISTICS");
-            stater("USED PARAMETERS: "); //TODO FILL IN THE PARAMETERS OF THE SESSION HANDLER
+            stater("USED PARAMETERS: " + SH.getParameterString()); 
             stater("PROCESS ID: " + processId);
             stater("-----------------------------------------------");
             stater("Total transitions from Logs: " + totalLogTransitions );
@@ -306,8 +335,11 @@ public class SessionTraversal {
 
                     @Override
                     public int compare(String arg0, String arg1) {
-                        Integer int0 = Integer.getInteger(arg0.substring(1));
-                        Integer int1 = Integer.getInteger(arg1.substring(1));
+                        String str = arg0.substring(1);
+                        
+                        
+                        Integer int0 = Integer.valueOf(str);
+                        Integer int1 = Integer.valueOf(arg1.substring(1));
                         
                         return int0.compareTo(int1);
                     }
@@ -473,7 +505,7 @@ public class SessionTraversal {
         List<String> selectedUserIds = new ArrayList<String>();
         if (selectedUserIdsOption==-1){
             //set default value
-            Integer selectedUserIdsOption = 3;
+            selectedUserIdsOption = 3;
         }
         switch(selectedUserIdsOption){
         

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import SessionHandlers.SessionHandler;
+import SessionHandlers.SessionHandlerKeepAll;
 import gq.panop.util.HibernateUtil;
 import gq.panop.util.MiscUtil;
 
@@ -40,6 +42,14 @@ public class App
         //requestedUserIds.add("mbe");
         //requestedUserIds.add("tom");
         //st.setupRequestedUserIds(requestedUserIds);
+        
+        SessionHandlerKeepAll SHk = new SessionHandlerKeepAll();
+        SHk.setDiscardImages(false);
+        SHk.setDiscardParameters(true);
+        SHk.setDiscardCSSICO(false);
+        
+        
+        //st.setupSessionHandler(SHk);
         st.start();
         
         //Playground.Start();        

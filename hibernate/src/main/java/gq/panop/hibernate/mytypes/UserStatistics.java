@@ -66,7 +66,7 @@ public class UserStatistics implements Serializable {
     public void addDayStatistic(Long timestamp, Integer numfOfTrans){
         Calendar a = Calendar.getInstance();
         a.setTimeInMillis(timestamp);
-        String day = a.get(Calendar.DAY_OF_MONTH) + "." + a.get(Calendar.MONTH);
+        String day = a.get(Calendar.DAY_OF_MONTH) + "." + (a.get(Calendar.MONTH)+1);
         
         //keeping first and last timestamps and days
         if (first){

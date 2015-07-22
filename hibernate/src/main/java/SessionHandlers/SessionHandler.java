@@ -15,4 +15,6 @@ public interface SessionHandler {
     public List<Transition> getSessions();
     
     public UniqueIDAssigner getUniqueIDAssigner();
+    
+    public String getParameterString();
 }
