@@ -101,7 +101,7 @@ public class PreprocessDao {
 	        preprocess.setStatusCode(0);
 	        preprocess.setUserAgent("EMPTY");
 	        
-	        preprocess.setTransitionID(trans.getTransitionID());
+	        preprocess.setRefererID(trans.getRefererID());
 	        preprocess.setTargetID(trans.getTargetID());
 	        
 	        preprocessList.add(preprocess);

@@ -185,7 +185,7 @@ public class HibernateUtil {
 	            + " clientIP VARCHAR(255),"
 	            + " userAgent TEXT,"
 	            + " statusCode int(11),"
-	            + " transitionID VARCHAR(20),"
+	            + " refererID VARCHAR(20),"
 	            + " targetID VARCHAR(20),"
 	            + " INDEX trans_index (transactionId),"
 	            + " INDEX processID_index (processID)"

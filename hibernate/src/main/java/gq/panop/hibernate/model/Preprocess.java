@@ -17,7 +17,7 @@ public class Preprocess{
 	private String clientId;
 	private String subSession;
 
-	private String transitionID;
+	private String refererID;
 	private String targetID;
 	
 	public Preprocess(){}
@@ -121,12 +121,12 @@ public class Preprocess{
         this.processID = processId;
     }
 
-    public String getTransitionID() {
-        return transitionID;
+    public String getRefererID() {
+        return refererID;
     }
 
-    public void setTransitionID(String transitionID) {
-        this.transitionID = transitionID;
+    public void setRefererID(String refererID) {
+        this.refererID = refererID;
     }
 
     public String getTargetID() {
@@ -144,8 +144,8 @@ public class Preprocess{
                 + UserId + ", referer=" + referer + ", userAgent=" + userAgent
                 + ", transactionId=" + transactionId + ", timestamp="
                 + timestamp + ", statusCode=" + statusCode + ", clientId="
-                + clientId + ", subSession=" + subSession + ", transitionID="
-                + transitionID + ", targetID=" + targetID + "]";
+                + clientId + ", subSession=" + subSession + ", refererID="
+                + refererID + ", targetID=" + targetID + "]";
     }
 
 }

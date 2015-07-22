@@ -299,7 +299,30 @@ public class SessionTraversal {
                     stater(textBuf);
                 }
                 
+                stater("=======================================================");
+                stater("Page dictonary");
+                
+                TreeMap<String, String> tMap = new TreeMap<String, String>(new Comparator<String>(){
+
+                    @Override
+                    public int compare(String arg0, String arg1) {
+                        Integer int0 = Integer.getInteger(arg0.substring(1));
+                        Integer int1 = Integer.getInteger(arg1.substring(1));
+                        
+                        return int0.compareTo(int1);
+                    }
+                });
+                
+                for (Entry<String, String> tmp:SH.getUniqueIDAssigner().getPageMap().entrySet()){
+                    tMap.put(tmp.getValue(), tmp.getKey());
+                }
+                
+                for (Entry<String, String> tmp: tMap.entrySet()){
+                    stater(tmp.getKey() + " = " + tmp.getValue());
+                }
+                
             }
+            
             if(writeStatisticToFile){
                 try{
                     writer.close();

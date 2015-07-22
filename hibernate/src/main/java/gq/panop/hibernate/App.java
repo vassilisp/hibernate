@@ -24,7 +24,7 @@ public class App
         UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
         //usa.start();
         
-        //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
+        System.out.println(HibernateUtil.hqlDelete("Preprocess"));
         
         Integer result = HibernateUtil.hqlTruncate("Preprocess");
         System.out.println(result);

@@ -1,5 +1,6 @@
 package SessionHandlers;
 
+import gq.panop.hibernate.UniqueIDAssigner;
 import gq.panop.hibernate.jungGraphCreatorStringVertices;
 import gq.panop.hibernate.mytypes.AugmentedACL;
 import gq.panop.hibernate.mytypes.Transition;
@@ -34,10 +35,7 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     private List<Transition> transitions = new ArrayList<Transition>();
     
-    private Map<String, String> transitionMap = new HashMap<String, String>();
-    private Integer uniqueTransitionCounter = 0;
-    private Map<String, String> targetMap = new HashMap<String, String>();
-    private Integer uniqueTargetCounter = 0;
+    private UniqueIDAssigner uID = new UniqueIDAssigner();
     
     private List<Node> loadedNodes = new ArrayList<Node>();
     
@@ -373,12 +371,8 @@ public class SessionHandlerUniversal implements SessionHandler {
     private void keep(Transition transition){
         customDeb("*****   " + internalCounter++);
         
-        
-        String transitionID = transitionVectorizer(transition);
-        String targetID = targetVectorizer(transition);
-        
-        transition.setTransitionID(transitionID);
-        transition.setTargetID(targetID);
+        transition.setRefererID(uID.pageVectorizer(transition.getReferer()));
+        transition.setTargetID(uID.pageVectorizer(transition.getTarget()));
         
         transitions.add(transition);
         if (generateGraphs){
@@ -399,44 +393,6 @@ public class SessionHandlerUniversal implements SessionHandler {
         }
     }
     
-    private String transitionVectorizer(Transition transition){
-        String referer = transition.getReferer();
-        String target = transition.getTarget();
-        
-        String transitionalSearch = referer + ">>>" + target;
-        
-        String searchTransitionResult = transitionMap.get(transitionalSearch);
-        
-        String result;
-        if (searchTransitionResult == null){
-            //create new transitionID and put in dictionary
-            result = "T" + uniqueTransitionCounter++;
-            transitionMap.put(transitionalSearch, result);
-        }else{
-            //retrieve and assign
-            result = searchTransitionResult;
-        }
-        
-        return result;
-        
-    }
-    
-    private String targetVectorizer(Transition transition){
-        String target = transition.getTarget();
-        
-        String searchTargetResult = targetMap.get(target);
-        
-        String result;
-        if (searchTargetResult == null){
-            result = "P" + uniqueTargetCounter++;
-            targetMap.put(target, result);
-        }else{
-            result = searchTargetResult;
-        }
-        
-        return result;
-    }
-    
     private void customDeb(String text){
         if (debugMode){
             System.out.println(text);
@@ -447,8 +403,6 @@ public class SessionHandlerUniversal implements SessionHandler {
     private void graphAdd(Node e){
         loadedNodes.add(e);
     }
-
-    
     
     public Boolean getDebugMode() {
         return debugMode;
@@ -646,6 +600,10 @@ public class SessionHandlerUniversal implements SessionHandler {
                 return false;
             }
         }
+    }
+    
+    public UniqueIDAssigner getUniqueIDAssigner(){
+        return this.uID;
     }
     
 }

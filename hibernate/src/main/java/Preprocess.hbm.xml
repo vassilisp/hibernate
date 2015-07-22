@@ -16,7 +16,7 @@
       <property name="clientId"/>
       <property name="userId"/>
       <property name="subSession"/>
-      <property name="transitionID"/>
+      <property name="refererID"/>
       <property name="targetID"/>
    </class>
 </hibernate-mapping>

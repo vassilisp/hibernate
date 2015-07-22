@@ -10,7 +10,7 @@ public class Transition {
     
     private String subSessionId;
 
-    private String transitionID;
+    private String refererID;
     private String targetID;
 
     public Transition(String referer, String target, Long timestamp) {
@@ -82,11 +82,11 @@ public class Transition {
 
     
     
-    public String getTransitionID() {
-        return transitionID;
+    public String getRefererID() {
+        return refererID;
     }
-    public void setTransitionID(String transitionID) {
-        this.transitionID = transitionID;
+    public void setRefererID(String transitionID) {
+        this.refererID = transitionID;
     }
     public String getTargetID() {
         return targetID;
@@ -99,8 +99,8 @@ public class Transition {
         return "Transition [referer=" + referer + ", target=" + target
                 + ", timestamp=" + timestamp + ", sessionId=" + sessionId
                 + ", userId=" + userId + ", transactionId=" + transactionId
-                + ", subSessionId=" + subSessionId + ", transitionID="
-                + transitionID + ", targetID=" + targetID + "]";
+                + ", subSessionId=" + subSessionId + ", refererID="
+                + refererID + ", targetID=" + targetID + "]";
     }
 
     
