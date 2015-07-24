@@ -72,12 +72,8 @@ public class SessionHandlerKeepAll implements SessionHandler{
 
 
         if (discardParameters){
-            if(referer.indexOf("?")>0){
-                referer = referer.substring(0, referer.indexOf("?"));
-            }
-            if(target.indexOf("?")>0){
-                target = target.substring(0, target.indexOf("?"));
-            }
+            referer = MiscUtil.discardParamaters(referer);
+            target = MiscUtil.discardParamaters(target);
         }
 
 

@@ -1,11 +1,19 @@
 package gq.panop.util;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MiscUtil {
     
+    private static List<String> separators = new ArrayList<String>();
+    
+    static {
+        separators.add("?");
+        separators.add(";");
+    }
     public static String custom_Parser(String URI, Integer numberOfTokens){
         
         //For reference only
@@ -43,6 +51,19 @@ public class MiscUtil {
     }
     
     public static String URLTargetCleaner(String urlTarget){
-        return urlTarget.replace(" HTTP/1.1" , "").replace(" ", "").replace("POST", "").replace("GET", "");
+        return urlTarget.replace(" HTTP/1.1" , "").replace(" ", "").replace("POST", "").replace("GET", "").replace("PUT", "");
+    }
+    
+    public static String discardParamaters(String url){
+        
+        for (String sep:separators){
+            if(url.indexOf(sep)>0){
+                url = url.substring(0, url.indexOf(sep));
+                break;
+            }
+        }
+        
+        return url;
+        
     }
 }

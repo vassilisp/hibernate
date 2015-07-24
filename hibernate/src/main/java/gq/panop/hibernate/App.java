@@ -22,21 +22,8 @@ public class App
 
         //TransitionGraph tg = new TransitionGraph();
         //tg.tester();
+
         
-        UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
-        usa.analyze("default");
-        usa.returnNUsersAroundValue(20, usa.getMeanTransitions());
-        
-        usa.returnNUsersWithAvgPerDayAroundValue(20, usa.getMeanTransitions()/usa.getMeanNofActiveDays());
-        
-        
-        
-        StatisticsAnalysisTOTALLOG usaTotalLog = new StatisticsAnalysisTOTALLOG();
-        usaTotalLog.analyze("default");
-        usaTotalLog.returnNUsersAroundValue(20, usaTotalLog.getMeanTransitions());
-        usaTotalLog.returnNUsersWithAvgPerDayAroundValue(20, usaTotalLog.getMeanTransitions()/usaTotalLog.getMeanNofActiveDays());
-        
-        usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 1.0);
         //Delete table
         //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
         
@@ -51,20 +38,37 @@ public class App
             System.out.println(HibernateUtil.hqlCreatePreProcessTable("Preprocess"));
         }
         
-        String processId = null;
-        SessionTraversal st = new SessionTraversal(processId);
+        
+        UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
+        //usa.analyze("default");
+        //usa.returnNUsersAroundValue(20, usa.getMeanTransitions());
+        
+        //usa.returnNUsersWithAvgPerDayAroundValue(20, usa.getMeanTransitions()/usa.getMeanNofActiveDays());
+        
+        
+        
+        UserStatisticsAnalysisBEFORE usaTotalLog = new UserStatisticsAnalysisBEFORE();
+        usaTotalLog.analyze("default");
+        //usaTotalLog.returnNUsersAroundValue(20, usaTotalLog.getMeanTransitions());
+        //usaTotalLog.returnNUsersWithAvgPerDayAroundValue(20, usaTotalLog.getMeanTransitions()/usaTotalLog.getMeanNofActiveDays());
+        
+        //usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 1.0);
+        
         List<String>requestedUserIds = new ArrayList<String>();
-        //requestedUserIds.add("mbe");
-        //requestedUserIds.add("tom");
-        //st.setupRequestedUserIds(requestedUserIds);
+        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 0.9);
+        
+        SessionTraversal st = new SessionTraversal(null);
+
+        st.setupRequestedUserIds(requestedUserIds);
         
         SessionHandlerKeepAll SHk = new SessionHandlerKeepAll();
-        SHk.setDiscardImages(false);
+        SHk.setDiscardImages(true);
         SHk.setDiscardParameters(true);
-        SHk.setDiscardCSSICO(false);
+        SHk.setDiscardCSSICO(true);
         
         
-        //st.setupSessionHandler(SHk);
+        st.setupSessionHandler(SHk);
+        st.setDryRun(true);
         st.start();
         
         //Playground.Start();        

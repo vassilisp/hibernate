@@ -45,13 +45,24 @@ public class SessionTraversal {
     
     private Writer writer = null;
     
+    
     //=========================================================================
     private Boolean generateStatistics = true;
     private Boolean writeStatisticToFile = true;
     private Boolean detailedReport = true;
     private Integer selectedUserIdsOption = -1; //default
+    private Boolean dryRun = false;
     //=========================================================================
     
+    public Boolean getDryRun() {
+        return dryRun;
+    }
+
+    public void setDryRun(Boolean dryRun) {
+        this.dryRun = dryRun;
+    }
+
+
     private SessionHandler SH;
     
     
@@ -62,7 +73,7 @@ public class SessionTraversal {
             Random rand = new Random();
             String ID = "";
             
-            for (int i=0;i<5; i++){
+            for (int i=0;i<6; i++){
                 ID += rand.nextInt(10);
                 
             }
@@ -150,10 +161,12 @@ public class SessionTraversal {
 
         //List to hold kept (processed transitions)
         List<Transition> realTransitions = new ArrayList<Transition>();
+        
         List<String> selectedUserIds = selectionOfUserIds(userIds);
+        
         UserStatistics uS = new UserStatistics();
 
-        Integer TotalUsers = userIds.size();
+        Integer TotalUsers = selectedUserIds.size();
         Integer userCounter = 1;
         
         Integer totalClientIds = 0;
@@ -225,8 +238,9 @@ public class SessionTraversal {
                     
                     //---------------------------------------------------------
                     //Save results
-                    prepDao.saveTransactions(SH.getSessions(), processId);
-                    
+                    if(!dryRun){
+                        prepDao.saveTransactions(SH.getSessions(), processId);
+                    }
                     //---------------------------------------------------------
 
                 }  
@@ -262,6 +276,7 @@ public class SessionTraversal {
             stater("STATISTICS");
             stater("USED PARAMETERS: " + SH.getParameterString()); 
             stater("PROCESS ID: " + processId);
+            if (dryRun) stater("--DRYRUN enabled - not saving into DB");
             stater("-----------------------------------------------");
             stater("Total transitions from Logs: " + totalLogTransitions );
             stater("Total transitions kept after SessionHandling: " + totalTransitions);
@@ -345,12 +360,18 @@ public class SessionTraversal {
                     }
                 });
                 
+                
                 for (Entry<String, String> tmp:SH.getUniqueIDAssigner().getPageMap().entrySet()){
                     tMap.put(tmp.getValue(), tmp.getKey());
                 }
                 
+                Integer cnt = 0;
                 for (Entry<String, String> tmp: tMap.entrySet()){
                     stater(tmp.getKey() + " = " + tmp.getValue());
+                    if(++cnt>1000) {
+                        System.out.println("Omiting next " + (tMap.size()-1000) + "entries");
+                        break;
+                    }
                 }
                 
             }
@@ -371,7 +392,7 @@ public class SessionTraversal {
                 Calendar a = Calendar.getInstance();
                 String filename = "serializedObjects/userStats";
                 filename = filename +a.get(Calendar.DAY_OF_MONTH) + (a.get(Calendar.MONTH)+1) 
-                        + a.get(Calendar.MINUTE) + ".ser" ;
+                        + a.get(Calendar.MINUTE) + "_" + processId + ".ser" ;
                 
                 FileOutputStream fileOut = new FileOutputStream(filename);
                 ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
@@ -503,37 +524,13 @@ public class SessionTraversal {
         //decide which users should be kept for the final set
         
         List<String> selectedUserIds = new ArrayList<String>();
-        if (selectedUserIdsOption==-1){
-            //set default value
-            selectedUserIdsOption = 3;
-        }
-        switch(selectedUserIdsOption){
-        
-        case 1:
-            //OPTION1
-            //random N users, where N is given:
-            Collections.shuffle(userIds);
-            ;
-            //how many persons to pick
-            Integer N = 50;
-            for (int i=0; i<N; i++){
-                selectedUserIds.add(userIds.remove(0));
-            }
-            break;
-        
-        case 2:
-            //OPTION2
-            //Select by hand
-            selectedUserIds.add("Sabine");
-            break;
-            
-        default:
-            //DEFAULT OPTION
-            //Return all
+
+        if (requestedUserIds==null){
             selectedUserIds.addAll(userIds);
-            break;
-            
+        }else{
+            selectedUserIds.addAll(requestedUserIds);
         }
+
         return selectedUserIds;
     }
     

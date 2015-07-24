@@ -18,7 +18,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
 
-public class StatisticsAnalysisTOTALLOG {
+public class UserStatisticsAnalysisBEFORE {
 
     private HashMap<String, UserStatistics> userStatistics = null; 
     
@@ -275,7 +275,12 @@ public class StatisticsAnalysisTOTALLOG {
         
         List<String> usersInRange = new ArrayList<String>();
         for (Entry<String, UserStatistics> tmp : userStatistics.entrySet()){
-            if (Math.abs(tmp.getValue().getTotalLogTransitions()-meanTransitions)<range){
+            Boolean condition1_intoRange = (Math.abs(tmp.getValue().getTotalLogTransitions()-meanTransitions)<range);
+            
+            //number of users active days at least more than mean - std
+            Boolean condition2_defineMinimumDays = (tmp.getValue().getNumberOfActiveDays()>(meanNofActiveDays-STDofActiveDays));
+                
+            if (condition1_intoRange && condition2_defineMinimumDays){
                 usersInRange.add(tmp.getKey());
             }
         }
@@ -308,7 +313,7 @@ public class StatisticsAnalysisTOTALLOG {
         
         System.out.println(N +" users RANDOMLY around MEAN value and in range STD times " + X);
         for (String tmpStr:result){
-            System.out.println(tmpStr);
+            //System.out.println(tmpStr);
         }
         
         return result;

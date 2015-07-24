@@ -112,6 +112,35 @@ public class PreprocessDao {
 	    
 	    return preprocessList;
 	}
+	
+	
+	public Boolean deleteFromPreprocessWithProcessID(String processID){
+	    
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        
+        Transaction tx = null;
+
+        Boolean result = false;
+        try {
+            tx = session.beginTransaction();
+            String queryString = "Delete from Preprocess where processID = :processID";
+            Query query = session.createQuery(queryString);
+            query.setString("processID", processID);
+
+            query.executeUpdate();
+            tx.commit();
+            result = true;
+        }catch (Throwable e){
+            if (!(tx==null)) tx.rollback();
+            e.printStackTrace();
+            result = false;
+        }finally{
+            session.flush();
+            session.close();
+        }
+        
+        return result;
+	}
        
 }
 
