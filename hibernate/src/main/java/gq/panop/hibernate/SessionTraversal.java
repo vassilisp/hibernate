@@ -70,14 +70,10 @@ public class SessionTraversal {
     
     public SessionTraversal(String processId){
         if (processId==null){
-            Random rand = new Random();
-            String ID = "";
+            Calendar a = Calendar.getInstance();
             
-            for (int i=0;i<6; i++){
-                ID += rand.nextInt(10);
-                
-            }
-            this.processId = "pro" + ID;
+            processId = "pro" + a.get(Calendar.DAY_OF_MONTH) + (a.get(Calendar.MONTH)+1) 
+                    + a.getMaximum(Calendar.HOUR) + a.get(Calendar.MINUTE);
         }else{
             this.processId = processId;
         }
@@ -390,9 +386,8 @@ public class SessionTraversal {
             
             try {
                 Calendar a = Calendar.getInstance();
-                String filename = "serializedObjects/userStats";
-                filename = filename +a.get(Calendar.DAY_OF_MONTH) + (a.get(Calendar.MONTH)+1) 
-                        + a.get(Calendar.MINUTE) + "_" + processId + ".ser" ;
+                String filename = "serializedObjects/userStats_";
+                filename = filename + processId + ".ser" ;
                 
                 FileOutputStream fileOut = new FileOutputStream(filename);
                 ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
@@ -433,9 +428,7 @@ public class SessionTraversal {
                 try{
                     Calendar a = Calendar.getInstance();
                     String filename = "statReports/statReport_";
-                    filename = filename +a.get(Calendar.DAY_OF_MONTH) + "_" 
-                            + ((Integer)(a.get(Calendar.MONTH)+1)).toString()
-                            +  "_" + a.get(Calendar.HOUR_OF_DAY) +  "_" + a.get(Calendar.MINUTE);
+                    filename = filename + processId;
                     
                     writer = new BufferedWriter( new OutputStreamWriter(
                             new FileOutputStream(filename), "utf-8"));

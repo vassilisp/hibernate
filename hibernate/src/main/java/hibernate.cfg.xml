@@ -13,17 +13,17 @@
 
     <!-- Database connection details -->
     
-    <!-- 
+     
     <property name="hibernate.connection.url">jdbc:mysql://thesisDBserver.dyn.adnovum.ch/OctoberLogsLocal</property> 
     <property name="hibernate.connection.username">vasilisp</property>
     <property name="hibernate.connection.password">a1b2c3$%^</property>
-     -->
      
      
+     <!-- 
     <property name="hibernate.connection.url">jdbc:mysql://mariadb1.dyn.adnovum.ch/testdata</property> 
     <property name="hibernate.connection.username">vasilisp</property>
     <property name="hibernate.connection.password">a1b2c3456</property>
-    
+     -->
     
     <!-- Pool manager setting -->
     <property name="hibernate.c3p0.min_size">1</property>
