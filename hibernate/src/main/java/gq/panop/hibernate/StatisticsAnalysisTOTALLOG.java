@@ -15,9 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Scanner;
 
-public class UserStatisticsAnalysis {
+public class StatisticsAnalysisTOTALLOG {
 
     private HashMap<String, UserStatistics> userStatistics = null; 
     
@@ -108,7 +109,7 @@ public class UserStatisticsAnalysis {
         Integer tmp = 0;
         Double meanNOfActiveDays = 0D;
         for (Entry<String, UserStatistics> userStat:userStatistics.entrySet()){
-            tmp = userStat.getValue().getTotalRealTransitions();
+            tmp = userStat.getValue().getTotalLogTransitions();
             mean += tmp;
             keptValues.put(userStat.getKey(), tmp);
             
@@ -164,7 +165,7 @@ public class UserStatisticsAnalysis {
         Integer distance = 0;
         List<UserDistance> userDistances = new ArrayList<UserDistance>();
         for (Entry<String, UserStatistics> set:userStatistics.entrySet()){
-            distance = Math.abs(set.getValue().getTotalRealTransitions() - value);
+            distance = Math.abs(set.getValue().getTotalLogTransitions() - value);
             UserDistance userDist = new UserDistance();
             userDist.setUser(set.getKey());
             userDist.setDistance(distance);
@@ -182,7 +183,7 @@ public class UserStatisticsAnalysis {
             System.out.print(userDistances.get(0).getDistance()  + "  ,            ");
             
             
-            Integer total = userStatistics.get(userDistances.get(0).getUser()).getTotalRealTransitions();
+            Integer total = userStatistics.get(userDistances.get(0).getUser()).getTotalLogTransitions();
             System.out.print(total + " ,     ");
             
             Integer active = userStatistics.get(userDistances.get(0).getUser()).getNumberOfActiveDays();
@@ -199,7 +200,7 @@ public class UserStatisticsAnalysis {
         
         System.out.println(N +" users with number of transitions around given VALUE: " + value);
         for (String tmpStr:result){
-            System.out.println(tmpStr);
+            //System.out.println(tmpStr);
         }
         
         return result;
@@ -214,11 +215,11 @@ public class UserStatisticsAnalysis {
         List<UserDistance> userAVGPerDayDist = new ArrayList<UserDistance>();
         for (Entry<String, UserStatistics> tmp : userStatistics.entrySet()){
             
-            Integer totalKept = tmp.getValue().getTotalRealTransitions();
+            Integer totalKept = tmp.getValue().getTotalLogTransitions();
             Integer activeDays = tmp.getValue().getNumberOfActiveDays();
             Integer avgPD = totalKept/activeDays;
             
-            System.out.println(totalKept + " , " +activeDays + " , " + avgPD);
+            //System.out.println(totalKept + " , " +activeDays + " , " + avgPD);
             
             Integer distance = Math.abs(avgPD-value);
             
@@ -242,7 +243,7 @@ public class UserStatisticsAnalysis {
             System.out.print(userAVGPerDayDist.get(0).getDistance()  + "  ,            ");
             
             
-            Integer total = userStatistics.get(userAVGPerDayDist.get(0).getUser()).getTotalRealTransitions();
+            Integer total = userStatistics.get(userAVGPerDayDist.get(0).getUser()).getTotalLogTransitions();
             System.out.print(total + " ,     ");
             
             Integer active = userStatistics.get(userAVGPerDayDist.get(0).getUser()).getNumberOfActiveDays();
@@ -259,12 +260,61 @@ public class UserStatisticsAnalysis {
         
         System.out.println(N +" users with AVERAGE TRANSITIONS PER DAY around the given VALUE: " + value);
         for (String tmpStr:result){
+            //System.out.println(tmpStr);
+        }
+        
+        return result;
+        
+    }
+    
+    public List<String> returnNRandomUsersAroundXtimesSTD(Integer N, Double X){
+        
+        
+        //pick N users around average withing X*STD
+        Double range = X*std;        
+        
+        List<String> usersInRange = new ArrayList<String>();
+        for (Entry<String, UserStatistics> tmp : userStatistics.entrySet()){
+            if (Math.abs(tmp.getValue().getTotalLogTransitions()-meanTransitions)<range){
+                usersInRange.add(tmp.getKey());
+            }
+        }
+        
+        Random rnd = new Random();
+        
+        Integer Ni = N;
+        System.out.println(" transitions, activeDays,avgPerDay, username");
+        List<String> result = new ArrayList<String>();
+        for(int c=0; c<Ni; c++){
+            
+            Integer index = rnd.nextInt(usersInRange.size());
+            String userSelected = usersInRange.get(index);
+
+            Integer total = userStatistics.get(userSelected).getTotalLogTransitions();
+            System.out.print(total + " ,     ");
+            
+            Integer active = userStatistics.get(userSelected).getNumberOfActiveDays();
+            System.out.print(active + "  ,      ");
+            
+            Integer avgPerDay = total/active;
+            System.out.print(avgPerDay + "  ,       ");
+            
+            System.out.println(userSelected);
+            
+            
+            result.add(userSelected);
+            usersInRange.remove(index);
+        }
+        
+        System.out.println(N +" users RANDOMLY around MEAN value and in range STD times " + X);
+        for (String tmpStr:result){
             System.out.println(tmpStr);
         }
         
         return result;
         
     }
+    
     
     public Integer getMeanNofActiveDays() {
         return meanNofActiveDays;
@@ -288,39 +338,5 @@ public class UserStatisticsAnalysis {
         
         
         return result;
-    }
-
-}
-
-class UserDistance{
-    private String user;
-    private Integer distance;
-    public String getUser() {
-        return user;
-    }
-    public void setUser(String user) {
-        this.user = user;
-    }
-    public Integer getDistance() {
-        return distance;
-    }
-    public void setDistance(Integer distance) {
-        this.distance = distance;
-    }
-    
-    public static Comparator<UserDistance> compareDistance(){
-        return new Comparator<UserDistance>(){
-
-            @Override
-            public int compare(UserDistance arg0, UserDistance arg1) {
-                if (arg0.distance>arg1.distance){
-                    return 1;
-                }else if(arg0.distance<arg1.distance){
-                    return -1;
-                }else{
-                    return 0;
-                }
-            }
-        };
     }
 }

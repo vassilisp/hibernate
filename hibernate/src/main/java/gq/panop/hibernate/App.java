@@ -24,12 +24,27 @@ public class App
         //tg.tester();
         
         UserStatisticsAnalysis usa = new UserStatisticsAnalysis();
-        //usa.start();
+        usa.analyze("default");
+        usa.returnNUsersAroundValue(20, usa.getMeanTransitions());
         
-        System.out.println(HibernateUtil.hqlDelete("Preprocess"));
+        usa.returnNUsersWithAvgPerDayAroundValue(20, usa.getMeanTransitions()/usa.getMeanNofActiveDays());
         
-        Integer result = HibernateUtil.hqlTruncate("Preprocess");
-        System.out.println(result);
+        
+        
+        StatisticsAnalysisTOTALLOG usaTotalLog = new StatisticsAnalysisTOTALLOG();
+        usaTotalLog.analyze("default");
+        usaTotalLog.returnNUsersAroundValue(20, usaTotalLog.getMeanTransitions());
+        usaTotalLog.returnNUsersWithAvgPerDayAroundValue(20, usaTotalLog.getMeanTransitions()/usaTotalLog.getMeanNofActiveDays());
+        
+        usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 1.0);
+        //Delete table
+        //System.out.println(HibernateUtil.hqlDelete("Preprocess"));
+        
+        
+        Integer result = 0;
+        //Truncate all entries in a table
+        //result = HibernateUtil.hqlTruncate("Preprocess");
+        //System.out.println(result);
         
 
         if (result==-1){
