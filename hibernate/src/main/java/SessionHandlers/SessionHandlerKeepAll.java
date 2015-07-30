@@ -8,6 +8,8 @@ import gq.panop.util.MiscUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SessionHandlerKeepAll implements SessionHandler{
 
@@ -19,11 +21,12 @@ public class SessionHandlerKeepAll implements SessionHandler{
     private String userId;
     //=========================================================================
     private Boolean discardParameters = false;
-    private Integer tokenizer = 0;
+    private Integer afterTokenizer = 0;
     private Boolean discardImages = false;
     //-------------------------------------------------------------------------
     private Boolean discardCSSICO = false;
-    
+
+    private Pattern pattern;
 
     @Override
     public void newUser(String userId, String clientId) {
@@ -50,7 +53,7 @@ public class SessionHandlerKeepAll implements SessionHandler{
         Long timestamp = session.getTimestamp();                
                
         Boolean isImage = (((target.toLowerCase().endsWith(".png")||referer.toLowerCase().endsWith(".png") ||referer.toLowerCase().endsWith(".jpg") ||
-                referer.toLowerCase().endsWith(".gif")) && discardImages));
+                target.toLowerCase().endsWith(".jpg") ||referer.toLowerCase().endsWith(".gif") || target.toLowerCase().endsWith(".gif")) && discardImages));
         Boolean isCSS = (target.contains("css")) || (referer.contains("css"));
         isCSS = isCSS && discardCSSICO;
         Boolean isICO = (target.contains(".ico") || referer.contains(".ico")); 
@@ -63,14 +66,7 @@ public class SessionHandlerKeepAll implements SessionHandler{
         }
         
 
-        if (tokenizer>0){
-            referer = MiscUtil.custom_Parser(referer, tokenizer);
-            target = MiscUtil.custom_Parser(referer, tokenizer);
-        }
-        
-
-
-
+ 
         if (discardParameters){
             referer = MiscUtil.discardParamaters(referer);
             target = MiscUtil.discardParamaters(target);
@@ -79,9 +75,17 @@ public class SessionHandlerKeepAll implements SessionHandler{
 
 
         if (!isSpecialRequest){
+            
+            
             Transition trans = new Transition(referer, target, timestamp);
-
-            trans.setUserId(userId);
+            
+            if (afterTokenizer>0){
+                referer = tokenizing(referer);
+                target = tokenizing(target);
+            }           
+            
+            String uUser = uID.userVectorizer(userId);
+            trans.setUserId(uUser);
             trans.setSessionId(clientId);
 
             trans.setSubSessionId("subSession:0");
@@ -110,7 +114,7 @@ public class SessionHandlerKeepAll implements SessionHandler{
             paramString += "KImg-";
         }
         
-        paramString += "Tok" + tokenizer.toString() + "-";
+        paramString += "Tok" + afterTokenizer.toString() + "-";
         
         if (discardCSSICO){
             paramString += "DCss-";
@@ -152,13 +156,34 @@ public class SessionHandlerKeepAll implements SessionHandler{
     }
 
 
-    public Integer getTokenizer() {
-        return tokenizer;
+    public Integer getAfterTokenizer() {
+        return afterTokenizer;
     }
 
 
-    public void setTokenizer(Integer tokenizer) {
-        this.tokenizer = tokenizer;
+    public void setAfterTokenizer(Integer tokenizer) {
+        this.afterTokenizer = tokenizer;
+        
+        String regex = "\\/+(\\w)+\\/";
+        for (int i=1; i<tokenizer; i++){
+            regex += "+(\\w)+\\/";
+        }
+
+        pattern = Pattern.compile(regex);
+        
+    }
+    
+    public String tokenizing(String URL){
+        Matcher matcher = pattern.matcher(URL);
+        
+        matcher.find();
+        String result = "";
+        try{
+            result = matcher.group();
+        }catch(Throwable e){
+            result = URL;
+        }
+        return result;
     }
 
 

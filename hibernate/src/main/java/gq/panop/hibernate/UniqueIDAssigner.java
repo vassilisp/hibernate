@@ -8,13 +8,16 @@ import gq.panop.hibernate.mytypes.Transition;
 public class UniqueIDAssigner {
     
     private Map<String, String> refererMap = new HashMap<String, String>();
-    private Integer uniqueRefererCounter = 0;
+    private Integer uniqueRefererCounter = 1;
     private Map<String, String> targetMap = new HashMap<String, String>();
-    private Integer uniqueTargetCounter = 0;
+    private Integer uniqueTargetCounter = 1;
     
     private Map<String, String> pageMap = new HashMap<String, String>();
-    private Integer uniquePageCounter = 0;
+    private Integer uniquePageCounter = 1;
 
+    private Map<String, String> userMap = new HashMap<String, String>();
+    private Integer uniqueUserCounter = 1;
+    
     public String refererVectorizer(Transition transition){
         String referer = transition.getReferer();
         
@@ -64,6 +67,21 @@ public class UniqueIDAssigner {
             result = searchPageResult;
         }
         
+        return result;
+    }
+    
+    public String userVectorizer(String user){
+        
+        String searchUserResult = userMap.get(user);
+        String result;
+        if (searchUserResult == null){
+            //create new userId and put it in the dictionary
+            result = "U" + uniqueUserCounter++;
+            userMap.put(user, result);
+        }else{
+            //retrieve and assign
+            result = searchUserResult;
+        }
         return result;
     }
     

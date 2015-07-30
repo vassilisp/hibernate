@@ -73,10 +73,11 @@ public class SessionTraversal {
             Calendar a = Calendar.getInstance();
             
             processId = "pro" + a.get(Calendar.DAY_OF_MONTH) + (a.get(Calendar.MONTH)+1) 
-                    + a.getMaximum(Calendar.HOUR) + a.get(Calendar.MINUTE);
-        }else{
-            this.processId = processId;
+                    + a.get(Calendar.HOUR) + a.get(Calendar.MINUTE);
         }
+        
+        this.processId = processId;
+
     }
     
     public void setupSessionHandler(SessionHandler givenSH){
@@ -111,7 +112,7 @@ public class SessionTraversal {
         SessionHandlerUniversal sHU = new SessionHandlerUniversal(1000*60*20, 2000);
         sHU.setDiscardImages(true);
         sHU.setDiscardParameters(true);
-        sHU.setTokenizer(0);
+        sHU.setBeforeTokenizer(0);
         sHU.setSearchHiddenConnections(false);
         sHU.setDebugMode(false);
         sHU.setGenerateGraphs(false);
@@ -189,29 +190,28 @@ public class SessionTraversal {
 
             Integer clientIdCounter = 0;
             Integer progress = 0;
-            Integer prevProgress = 0;
-            for (int i=0;i<50; i++){
-                System.out.print("x");
-            }
-            System.out.println("|");
+
+            ProgressBar pB = new ProgressBar(50);
+            pB.printProgressBar();
             
-            
+            Boolean firstFound = true;
             for(String clientId:clientIds){
                 List<AugmentedACL> augmentedACLs = aclDao.getFullEfficientOrderedSessionTransactions(clientId);
                 //augmentedACLs list contains all transactions of the given clientId session
                 //performance.Lap();
                 
                 
-                progress = (int) (++clientIdCounter * (50.0/clientIds.size()));
+                progress = (int) (++clientIdCounter * (100.0/clientIds.size()));
                 //System.out.print("(" + progress + ")-");
-                for (int i=0;i<progress-prevProgress; i++){
-                    System.out.print("=");
-                }
-                prevProgress = progress;
-                
-                
-                if (augmentedACLs.size()>0){
+                pB.updateProgress(progress);
 
+                
+                
+                if (augmentedACLs.size()>150){
+                    if (firstFound){
+                        System.out.println("FOUND");
+                        firstFound = false;
+                    }
                     //-----------------------------------------------------
                     
                     totalActiveClientIds++;
@@ -229,6 +229,7 @@ public class SessionTraversal {
                         
                         uS.addDayStatistic(SH.getSessions().get(0).getTimestamp(), SH.getSessions().size());
                         uS.addTotalRealTransitions(SH.getSessions().size());
+                        uS.setClientIdStatistic(clientId, SH.getSessions().size());
                         uS.addTotalLogTransitions(augmentedACLs.size()); 
                     }
                     
@@ -398,7 +399,7 @@ public class SessionTraversal {
                 objectOut.close();
                 
                 fileOut.close();
-                System.out.println("UserStatistics serialized to file");
+                System.out.println("UserStatistics serialized to file: " + filename);
                 
                 
             } catch (FileNotFoundException e) {
@@ -518,7 +519,7 @@ public class SessionTraversal {
         
         List<String> selectedUserIds = new ArrayList<String>();
 
-        if (requestedUserIds==null){
+        if (requestedUserIds==null || requestedUserIds.size()<1){
             selectedUserIds.addAll(userIds);
         }else{
             selectedUserIds.addAll(requestedUserIds);
@@ -527,11 +528,44 @@ public class SessionTraversal {
         return selectedUserIds;
     }
     
+
     private void visialize(List<Transition> Transitions){
         jungGraphCreatorStringVertices jgc = new jungGraphCreatorStringVertices(false, false);
         for (Transition trans : Transitions){
             jgc.AddTransition(trans);
         }
+    }
+    
+    class ProgressBar{
+        Integer progress = 0 ;
+        Integer length;
+        
+        Double scale;
+        String indicator = "x";
+        String d_indicator = "=";
+        
+        public ProgressBar(Integer length){
+            this.length = length;
+            scale = length.doubleValue()/100.0;
+        }
+        
+        void printProgressBar(){
+            for (int i=0;i<length; i++){
+                System.out.print(indicator);
+            }
+            System.out.println("|");
+        }
+        
+        void updateProgress(Integer percentage){
+            
+            percentage = (int) (percentage.doubleValue()*scale);
+            
+            for (int i=0;i<percentage - progress; i++){
+                System.out.print(d_indicator);
+            }
+            progress = percentage;
+        }
+        
     }
     
 }

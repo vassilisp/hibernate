@@ -34,8 +34,10 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     private Boolean discardParameters = true;
     private Boolean discardImages = true;
-    private Integer tokenizer = 0;
+    private Integer beforeTokenizer = 0;
     private Boolean discardCSSICO = true;
+    
+    private Integer afterTokenizer = 0;
 //=============================================================================    
     
     private List<Transition> transitions = new ArrayList<Transition>();
@@ -47,7 +49,7 @@ public class SessionHandlerUniversal implements SessionHandler {
 
     private Integer subSessionCounter=0;
     
-    private URLNormalizer urlN = new URLNormalizer(discardParameters, tokenizer, discardImages);
+    private URLNormalizer urlN = new URLNormalizer(discardParameters, beforeTokenizer, discardImages);
     
     private jungGraphCreatorStringVertices jgc = null;
     //private jungGraphCreatorStringVertices jgc = null;
@@ -106,9 +108,9 @@ public class SessionHandlerUniversal implements SessionHandler {
             customDeb("AUTOREQUEST DETECTED BY TYPE");
         }
 
-        if (tokenizer>0){
-            referer = MiscUtil.custom_Parser(referer, tokenizer);
-            target = MiscUtil.custom_Parser(referer, tokenizer);
+        if (beforeTokenizer>0){
+            referer = MiscUtil.custom_Parser(referer, beforeTokenizer);
+            target = MiscUtil.custom_Parser(referer, beforeTokenizer);
         }
 
         if (discardParameters){
@@ -378,8 +380,18 @@ public class SessionHandlerUniversal implements SessionHandler {
     private void keep(Transition transition){
         customDeb("*****   " + internalCounter++);
         
+        if(afterTokenizer>0){
+            String referer = transition.getReferer();
+            referer = MiscUtil.custom_Parser(referer, afterTokenizer);
+            
+            String target = transition.getTarget();
+            target = MiscUtil.custom_Parser(target, afterTokenizer);
+            
+        }
+        
         transition.setRefererID(uID.pageVectorizer(transition.getReferer()));
         transition.setTargetID(uID.pageVectorizer(transition.getTarget()));
+        transition.setUserId(uID.userVectorizer(transition.getUserId()));
         
         transitions.add(transition);
         if (generateGraphs){
@@ -421,7 +433,7 @@ public class SessionHandlerUniversal implements SessionHandler {
             paramString += "KImg-";
         }
         
-        paramString += "Tok" + tokenizer.toString() + "-";
+        paramString += "Tok" + beforeTokenizer.toString() + "-";
         
         if (discardCSSICO){
             paramString += "DCss-";
@@ -465,12 +477,21 @@ public class SessionHandlerUniversal implements SessionHandler {
         return SearchHiddenConnections;
     }
 
-    public Integer getTokenizer() {
-        return tokenizer;
+    public Integer getBeforeTokenizer() {
+        return beforeTokenizer;
     }
 
-    public void setTokenizer(Integer tokenizer) {
-        this.tokenizer = tokenizer;
+    public void setBeforeTokenizer(Integer tokenizer) {
+        this.beforeTokenizer = tokenizer;
+    }
+
+    
+    public Integer getAfterTokenizer() {
+        return afterTokenizer;
+    }
+
+    public void setAfterTokenizer(Integer afterTokenizer) {
+        this.afterTokenizer = afterTokenizer;
     }
 
     public void setSearchHiddenConnections(Boolean searchHiddenConnections) {

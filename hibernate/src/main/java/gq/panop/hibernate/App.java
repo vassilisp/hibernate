@@ -49,13 +49,15 @@ public class App
         
         UserStatisticsAnalysisBEFORE usaTotalLog = new UserStatisticsAnalysisBEFORE();
         usaTotalLog.analyze("default");
+        usaTotalLog.printAllAnalysis();
         //usaTotalLog.returnNUsersAroundValue(20, usaTotalLog.getMeanTransitions());
         //usaTotalLog.returnNUsersWithAvgPerDayAroundValue(20, usaTotalLog.getMeanTransitions()/usaTotalLog.getMeanNofActiveDays());
         
         //usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 1.0);
         
         List<String>requestedUserIds = new ArrayList<String>();
-        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimesSTD(20, 0.9);
+        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimesSTD(50, 0.9);
+        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimeSTD_clientId(50, 0.9);
         
         SessionTraversal st = new SessionTraversal(null);
 
@@ -65,6 +67,7 @@ public class App
         SHk.setDiscardImages(true);
         SHk.setDiscardParameters(true);
         SHk.setDiscardCSSICO(true);
+        SHk.setAfterTokenizer(3);
         
         
         st.setupSessionHandler(SHk);

@@ -63,6 +63,8 @@ public class UserStatistics implements Serializable {
         this.clientIdStatistics.put(clientId, numOfTrans);
     }
     
+    
+    
     public void addDayStatistic(Long timestamp, Integer numfOfTrans){
         Calendar a = Calendar.getInstance();
         a.setTimeInMillis(timestamp);
@@ -99,6 +101,32 @@ public class UserStatistics implements Serializable {
             counter++;
         }
         return counter;
+    }
+    
+    
+    public Map<String,Double> getMeanTransitionsPerClientId(){
+        Long mean = 0L;
+        for (Integer trans: clientIdStatistics.values()){
+            mean += trans;
+        }
+        mean = mean/clientIdStatistics.size();
+        
+        Double variance = 0D;
+        for (Integer trans: clientIdStatistics.values()){
+             variance += Math.pow(trans - mean,2);
+        }
+        
+        variance = variance/clientIdStatistics.size();
+        Double std = Math.sqrt(variance);
+        
+        Map<String, Double> result = new HashMap<String, Double>();
+        result.put("mean", mean.doubleValue());
+        result.put("variance", variance);
+        result.put("std", std);
+        
+        return result;
+        
+        
     }
 }
 

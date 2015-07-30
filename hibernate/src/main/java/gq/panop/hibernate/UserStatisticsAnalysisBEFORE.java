@@ -135,7 +135,7 @@ public class UserStatisticsAnalysisBEFORE {
         
         mean = mean/userStatistics.size();
         this.meanTransitions = mean;
-        System.out.println("Mean: " + mean);
+        System.out.println("Mean of total transitions per user: " + mean);
         
         Long variance = 0L;
         for (Entry<String, Integer> set: keptValues.entrySet()){
@@ -267,6 +267,81 @@ public class UserStatisticsAnalysisBEFORE {
         
     }
     
+    
+    public List<String> returnNRandomUsersAroundXtimeSTD_clientId(Integer N, Double X){
+        Double mean = 0D;
+        Double variance = 0D;
+        Double std;
+        for(UserStatistics tmp : userStatistics.values()){
+            mean += tmp.getMeanTransitionsPerClientId().get("mean");
+        }
+        mean = mean/userStatistics.size();
+        
+        for(UserStatistics tmp : userStatistics.values()){
+            variance += Math.pow((tmp.getMeanTransitionsPerClientId().get("mean")-mean),2);
+        }
+        variance = variance/userStatistics.size();
+        std = Math.sqrt(variance);
+        
+        Integer range = (int) (X*std);
+        Integer lowLimit = (int)(mean - (range/1.5));
+        Integer highLimit = (int)(mean + (range*1.5));
+        List<String> usersInRange = new ArrayList<String>();
+        for (Entry<String, UserStatistics> tmp :userStatistics.entrySet()){
+            Double a = tmp.getValue().getMeanTransitionsPerClientId().get("mean");
+            Double b = tmp.getValue().getMeanTransitionsPerClientId().get("std");
+            
+            Boolean condition1_intoLowRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")>lowLimit);
+            Boolean condition2_intoHighRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")<highLimit);
+            
+            Boolean condition3_defineMinimumDays = (tmp.getValue().getNumberOfActiveDays()>(meanNofActiveDays-STDofActiveDays));
+            
+            if ((condition1_intoLowRange && condition2_intoHighRange) && condition3_defineMinimumDays){
+                usersInRange.add(tmp.getKey());
+            }
+        }
+        
+        Random rnd = new Random();
+        
+        System.out.println(" transitions, activeDays,avgPerDay, meanPerCid, stdPCid");
+        
+        List<String> result = new ArrayList<String>();
+        for(int c=0; c<N; c++){
+            
+            Integer index = rnd.nextInt(usersInRange.size());
+            String userSelected = usersInRange.get(index);
+
+            Integer total = userStatistics.get(userSelected).getTotalLogTransitions();
+            System.out.print(total + " ,     ");
+            
+            Integer active = userStatistics.get(userSelected).getNumberOfActiveDays();
+            System.out.print(active + "  ,      ");
+            
+            Integer avgPerDay = total/active;
+            System.out.print(avgPerDay + "  ,       ");
+            
+            System.out.print(userStatistics.get(userSelected).getMeanTransitionsPerClientId().get("mean") + "     ");
+            System.out.print(userStatistics.get(userSelected).getMeanTransitionsPerClientId().get("std").intValue() + "     ");
+            
+            System.out.println(userSelected);
+            
+            
+            
+            result.add(userSelected);
+            usersInRange.remove(index);
+        }
+        
+        System.out.println(N +" users RANDOMLY around MEAN value and in range STD times " + X);
+        for (String tmpStr:result){
+            //System.out.println(tmpStr);
+        }
+        
+        return result;
+        
+        
+    }
+    
+    
     public List<String> returnNRandomUsersAroundXtimesSTD(Integer N, Double X){
         
         
@@ -288,7 +363,7 @@ public class UserStatisticsAnalysisBEFORE {
         Random rnd = new Random();
         
         Integer Ni = N;
-        System.out.println(" transitions, activeDays,avgPerDay, username");
+        System.out.println(" transitions, activeDays,avgPerDay, meanPerCid, stdPCid");
         List<String> result = new ArrayList<String>();
         for(int c=0; c<Ni; c++){
             
@@ -304,7 +379,11 @@ public class UserStatisticsAnalysisBEFORE {
             Integer avgPerDay = total/active;
             System.out.print(avgPerDay + "  ,       ");
             
+            System.out.print(userStatistics.get(userSelected).getMeanTransitionsPerClientId().get("mean") + "     ");
+            System.out.print(userStatistics.get(userSelected).getMeanTransitionsPerClientId().get("std").intValue() + "     ");
+            
             System.out.println(userSelected);
+            
             
             
             result.add(userSelected);
@@ -320,6 +399,27 @@ public class UserStatisticsAnalysisBEFORE {
         
     }
     
+    public void printAllAnalysis(){
+        
+        System.out.println(" transitions, activeDays,avgPerDay(Naive), avgPerClientId, stdPerClientId");
+        
+        for (Entry<String, UserStatistics> tmp:userStatistics.entrySet()){
+
+            Integer total = tmp.getValue().getTotalLogTransitions();
+            System.out.print(total + " ,        ");
+
+            Integer active = tmp.getValue().getNumberOfActiveDays();
+            System.out.print(active + "  ,         ");
+
+            Integer avgPerDay = total/active;
+            System.out.print(avgPerDay + "  ,          ");
+
+            System.out.print(tmp.getValue().getMeanTransitionsPerClientId().get("mean") + "        ");
+            System.out.print(tmp.getValue().getMeanTransitionsPerClientId().get("std").intValue() + "     ");
+            System.out.print(System.lineSeparator());
+            
+        }
+    }
     
     public Integer getMeanNofActiveDays() {
         return meanNofActiveDays;
