@@ -17,4 +17,6 @@ public interface SessionHandler {
     public UniqueIDAssigner getUniqueIDAssigner();
     
     public String getParameterString();
+    
+    public String getName();
 }

@@ -19,6 +19,15 @@ public class Preprocess{
 
 	private String refererID;
 	private String targetID;
+
+	private String refererID1;
+	private String targetID1;
+	private String refererID2;
+	private String targetID2;
+	private String refererID3;
+	private String targetID3;
+	private String refererID4;
+	private String targetID4;
 	
 	public Preprocess(){}
 
@@ -30,6 +39,86 @@ public class Preprocess{
 
     public void setProcessID(String processID) {
         this.processID = processID;
+    }
+
+
+    public String getRefererID1() {
+        return refererID1;
+    }
+
+
+    public void setRefererID1(String refererID1) {
+        this.refererID1 = refererID1;
+    }
+
+
+    public String getTargetID1() {
+        return targetID1;
+    }
+
+
+    public void setTargetID1(String targetID1) {
+        this.targetID1 = targetID1;
+    }
+
+
+    public String getRefererID2() {
+        return refererID2;
+    }
+
+
+    public void setRefererID2(String refererID2) {
+        this.refererID2 = refererID2;
+    }
+
+
+    public String getTargetID2() {
+        return targetID2;
+    }
+
+
+    public void setTargetID2(String targetID2) {
+        this.targetID2 = targetID2;
+    }
+
+
+    public String getRefererID3() {
+        return refererID3;
+    }
+
+
+    public void setRefererID3(String refererID3) {
+        this.refererID3 = refererID3;
+    }
+
+
+    public String getTargetID3() {
+        return targetID3;
+    }
+
+
+    public void setTargetID3(String targetID3) {
+        this.targetID3 = targetID3;
+    }
+
+
+    public String getRefererID4() {
+        return refererID4;
+    }
+
+
+    public void setRefererID4(String refererID4) {
+        this.refererID4 = refererID4;
+    }
+
+
+    public String getTargetID4() {
+        return targetID4;
+    }
+
+
+    public void setTargetID4(String targetID4) {
+        this.targetID4 = targetID4;
     }
 
 

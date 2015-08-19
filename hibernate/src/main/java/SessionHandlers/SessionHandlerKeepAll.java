@@ -79,10 +79,14 @@ public class SessionHandlerKeepAll implements SessionHandler{
             
             Transition trans = new Transition(referer, target, timestamp);
             
+            /*
             if (afterTokenizer>0){
                 referer = tokenizing(referer);
                 target = tokenizing(target);
-            }           
+            }*/
+            
+
+            
             
             String uUser = uID.userVectorizer(userId);
             trans.setUserId(uUser);
@@ -92,9 +96,36 @@ public class SessionHandlerKeepAll implements SessionHandler{
 
             trans.setTransactionId(session.getAccessLog().getTransactionId());
 
+            //----------------------------------------------------------------
             trans.setRefererID(uID.pageVectorizer(referer));
-            trans.setTargetID(uID.pageVectorizer(target)); 
+            trans.setTargetID(uID.pageVectorizer(target));
+            //----------------------------------------------------------------
+            
+            String refererID4 = MiscUtil.custom_Parser(referer, 4);
+            String targetID4 = MiscUtil.custom_Parser(target, 4);
+            
+            String refererID3 = MiscUtil.custom_Parser(referer, 3);
+            String targetID3 = MiscUtil.custom_Parser(target, 3);
+            
+            String refererID2 = MiscUtil.custom_Parser(referer, 2);
+            String targetID2 = MiscUtil.custom_Parser(target, 2);
+            
+            String refererID1 = MiscUtil.custom_Parser(referer, 1);
+            String targetID1 = MiscUtil.custom_Parser(target, 1);
+            
+            trans.setRefererID1(uID.pageVectorizer(refererID1));
+            trans.setRefererID2(uID.pageVectorizer(refererID2));
+            trans.setRefererID3(uID.pageVectorizer(refererID3));
+            trans.setRefererID4(uID.pageVectorizer(refererID4));
+            
+            trans.setTargetID1(uID.pageVectorizer(targetID1));
+            trans.setTargetID2(uID.pageVectorizer(targetID2));
+            trans.setTargetID3(uID.pageVectorizer(targetID3));
+            trans.setTargetID4(uID.pageVectorizer(targetID4));
+            
+            //------------------------------------------------------------------
 
+     
             transitions.add(trans);
         }
     }
@@ -129,7 +160,9 @@ public class SessionHandlerKeepAll implements SessionHandler{
         return discardCSSICO;
     }
 
-
+    public String getName(){
+        return "SessionHandlerKeepAll";
+    }
     public void setDiscardCSSICO(Boolean discardCSSICO) {
         this.discardCSSICO = discardCSSICO;
     }

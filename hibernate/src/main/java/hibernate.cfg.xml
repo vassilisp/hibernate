@@ -14,7 +14,8 @@
     <!-- Database connection details -->
     
      
-    <property name="hibernate.connection.url">jdbc:mysql://thesisDBserver.dyn.adnovum.ch/OctoberLogsLocal</property> 
+    <!-- <property name="hibernate.connection.url">jdbc:mysql://thesisDBserver.dyn.adnovum.ch/OctoberLogsLocal</property> -->
+    <property name="hibernate.connection.url">jdbc:mysql://192.168.15.176/OctoberLogsLocal</property> 
     <property name="hibernate.connection.username">vasilisp</property>
     <property name="hibernate.connection.password">a1b2c3$%^</property>
      

@@ -154,7 +154,12 @@ public class SessionTraversal {
          
         Map<String, UserStatistics> userStatistics = new HashMap<String, UserStatistics>();
                 
-       
+       System.out.println("Starting :" +processId);
+       System.out.println("SessionHandler: " + SH.getName());
+       System.out.println("Paramaeters: " + SH.getParameterString());
+       System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+       System.out.println("HERE WE GOOOOOOOOOO ;)");
+       System.out.println("V V V V V V V V V V V V V V V V V V V V V V V V V V V V V V");
 
         //List to hold kept (processed transitions)
         List<Transition> realTransitions = new ArrayList<Transition>();
@@ -211,6 +216,7 @@ public class SessionTraversal {
                     if (firstFound){
                         System.out.println("FOUND");
                         firstFound = false;
+                        
                     }
                     //-----------------------------------------------------
                     
@@ -566,6 +572,9 @@ public class SessionTraversal {
             progress = percentage;
         }
         
+        public void resetProgress(){
+            this.progress = 0;
+        }
     }
     
 }

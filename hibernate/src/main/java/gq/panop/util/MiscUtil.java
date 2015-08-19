@@ -32,8 +32,15 @@ public class MiscUtil {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(URI);
         
-        matcher.find();
-        return matcher.group();
+        String result = "";
+        try{
+            matcher.find();
+            result = matcher.group();
+        }catch(Throwable e){
+            result = URI;
+        }
+
+        return result;
     }
     
     public static Date toDate(long timestamp){

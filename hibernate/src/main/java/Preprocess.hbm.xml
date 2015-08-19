@@ -18,5 +18,14 @@
       <property name="subSession"/>
       <property name="refererID"/>
       <property name="targetID"/>
+
+	<property name="refererID1" />
+	<property name="targetID1" />
+	<property name="refererID2" />
+	<property name="targetID2" />
+	<property name="refererID3" />
+	<property name="targetID3" />
+	<property name="refererID4" />
+	<property name="targetID4" />
    </class>
 </hibernate-mapping>

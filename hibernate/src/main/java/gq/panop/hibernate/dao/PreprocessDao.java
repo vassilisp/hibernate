@@ -104,6 +104,18 @@ public class PreprocessDao {
 	        preprocess.setRefererID(trans.getRefererID());
 	        preprocess.setTargetID(trans.getTargetID());
 	        
+	        preprocess.setRefererID1(trans.getRefererID1());
+            preprocess.setTargetID1(trans.getTargetID1());
+            
+	        preprocess.setRefererID2(trans.getRefererID2());
+            preprocess.setTargetID2(trans.getTargetID2());
+            
+            preprocess.setRefererID3(trans.getRefererID3());
+            preprocess.setTargetID3(trans.getTargetID3());
+            
+            preprocess.setRefererID4(trans.getRefererID4());
+            preprocess.setTargetID4(trans.getTargetID4());
+	        
 	        preprocessList.add(preprocess);
 	    }
 	    if (preprocessList.size() != transitions.size()){

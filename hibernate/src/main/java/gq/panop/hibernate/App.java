@@ -57,7 +57,7 @@ public class App
         
         List<String>requestedUserIds = new ArrayList<String>();
         requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimesSTD(50, 0.9);
-        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimeSTD_clientId(50, 0.9);
+        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimeSTD_clientId(15, 0.3);
         
         SessionTraversal st = new SessionTraversal(null);
 
@@ -67,11 +67,11 @@ public class App
         SHk.setDiscardImages(true);
         SHk.setDiscardParameters(true);
         SHk.setDiscardCSSICO(true);
-        SHk.setAfterTokenizer(3);
+        //SHk.setAfterTokenizer(3);
         
         
-        st.setupSessionHandler(SHk);
-        st.setDryRun(true);
+        //st.setupSessionHandler(SHk);
+        //st.setDryRun(true);
         st.start();
         
         //Playground.Start();        

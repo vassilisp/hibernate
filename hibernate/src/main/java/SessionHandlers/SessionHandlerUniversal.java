@@ -379,7 +379,7 @@ public class SessionHandlerUniversal implements SessionHandler {
     
     private void keep(Transition transition){
         customDeb("*****   " + internalCounter++);
-        
+        /*
         if(afterTokenizer>0){
             String referer = transition.getReferer();
             referer = MiscUtil.custom_Parser(referer, afterTokenizer);
@@ -387,11 +387,40 @@ public class SessionHandlerUniversal implements SessionHandler {
             String target = transition.getTarget();
             target = MiscUtil.custom_Parser(target, afterTokenizer);
             
-        }
+        }*/
+        
+        String referer = transition.getReferer();
+        String target = transition.getTarget();
         
         transition.setRefererID(uID.pageVectorizer(transition.getReferer()));
         transition.setTargetID(uID.pageVectorizer(transition.getTarget()));
         transition.setUserId(uID.userVectorizer(transition.getUserId()));
+        
+        
+        
+        String refererID4 = MiscUtil.custom_Parser(referer, 4);
+        String targetID4 = MiscUtil.custom_Parser(target, 4);
+        
+        String refererID3 = MiscUtil.custom_Parser(referer, 3);
+        String targetID3 = MiscUtil.custom_Parser(target, 3);
+        
+        String refererID2 = MiscUtil.custom_Parser(referer, 2);
+        String targetID2 = MiscUtil.custom_Parser(target, 2);
+        
+        String refererID1 = MiscUtil.custom_Parser(referer, 1);
+        String targetID1 = MiscUtil.custom_Parser(target, 1);
+        
+        transition.setRefererID1(uID.pageVectorizer(refererID1));
+        transition.setRefererID2(uID.pageVectorizer(refererID2));
+        transition.setRefererID3(uID.pageVectorizer(refererID3));
+        transition.setRefererID4(uID.pageVectorizer(refererID4));
+        
+        transition.setTargetID1(uID.pageVectorizer(targetID1));
+        transition.setTargetID2(uID.pageVectorizer(targetID2));
+        transition.setTargetID3(uID.pageVectorizer(targetID3));
+        transition.setTargetID4(uID.pageVectorizer(targetID4));
+        
+        //------------------------------------------------------------------
         
         transitions.add(transition);
         if (generateGraphs){
@@ -509,7 +538,10 @@ public class SessionHandlerUniversal implements SessionHandler {
     public Boolean getDiscardImages() {
         return discardImages;
     }
-
+    
+    public String getName(){
+        return "SessionHandlerUniversal";
+    }
     public void setDiscardImages(Boolean discardImages) {
         this.discardImages = discardImages;
     }

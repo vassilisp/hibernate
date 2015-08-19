@@ -325,10 +325,13 @@ public class UserStatisticsAnalysisBEFORE {
             
             System.out.println(userSelected);
             
-            
+            String a = usersInRange.remove(index.intValue());
+            if (a!=userSelected){
+                System.out.println("bolocks");
+            }
             
             result.add(userSelected);
-            usersInRange.remove(index);
+            
         }
         
         System.out.println(N +" users RANDOMLY around MEAN value and in range STD times " + X);
@@ -348,7 +351,7 @@ public class UserStatisticsAnalysisBEFORE {
         //pick N users around average withing X*STD
         Double range = X*std;        
         
-        List<String> usersInRange = new ArrayList<String>();
+        ArrayList<String> usersInRange = new ArrayList<String>();
         for (Entry<String, UserStatistics> tmp : userStatistics.entrySet()){
             Boolean condition1_intoRange = (Math.abs(tmp.getValue().getTotalLogTransitions()-meanTransitions)<range);
             
@@ -364,7 +367,7 @@ public class UserStatisticsAnalysisBEFORE {
         
         Integer Ni = N;
         System.out.println(" transitions, activeDays,avgPerDay, meanPerCid, stdPCid");
-        List<String> result = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<String>();
         for(int c=0; c<Ni; c++){
             
             Integer index = rnd.nextInt(usersInRange.size());
@@ -384,10 +387,13 @@ public class UserStatisticsAnalysisBEFORE {
             
             System.out.println(userSelected);
             
+            String a = usersInRange.remove(index.intValue());
             
-            
+
             result.add(userSelected);
-            usersInRange.remove(index);
+            
+            
+            
         }
         
         System.out.println(N +" users RANDOMLY around MEAN value and in range STD times " + X);
