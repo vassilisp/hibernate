@@ -373,7 +373,6 @@ public class SessionTraversal {
                     stater(tmp.getKey() + " = " + tmp.getValue());
                     if(++cnt>1000) {
                         System.out.println("Omiting next " + (tMap.size()-1000) + "entries");
-                        break;
                     }
                 }
                 

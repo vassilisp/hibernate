@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import SessionHandlers.SessionHandler;
 import SessionHandlers.SessionHandlerKeepAll;
+import SessionHandlers.SessionHandlerUniversal;
 import gq.panop.util.HibernateUtil;
 import gq.panop.util.MiscUtil;
 
@@ -70,9 +71,19 @@ public class App
         //SHk.setAfterTokenizer(3);
         
         
-        //st.setupSessionHandler(SHk);
+        st.setupSessionHandler(SHk);
         //st.setDryRun(true);
         st.start();
+        
+        
+        //Second traversal with log clearing - the default sessionhandler of the session traversal
+        SessionTraversal st2 = new SessionTraversal(null);
+        
+        st2.setupRequestedUserIds(requestedUserIds);
+        
+        st2.start();
+        
+        
         
         //Playground.Start();        
         
