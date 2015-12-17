@@ -19,6 +19,6 @@ The datasets saved in the intermediate database are parsed again in Python and a
 the transitions of that session as a combination of referer and requested page, (ex. P1P3 P10P11 P1P40 ... where P1 is 
 the referer page, P3 is the requested page - P10 referer, P11 requested and so on).
 
-Sequence classification algorithms (pipelines) are developed in python and the best pre-processing and classification
+Sequence classification algorithms (pipelines) are developed in python [SeqClass project](https://github.com/vassilisp/SeqClass) and the best pre-processing and classification
 parameters are derived using a GridSearch approach. The results are evaluated in terms of performance (classification 
 accuracy, train and test times)
