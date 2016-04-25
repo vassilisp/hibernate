@@ -50,6 +50,7 @@ public class SessionHandlerKeepAll implements SessionHandler{
         referer = MiscUtil.URLRefererCleaner(referer);
         target = MiscUtil.URLTargetCleaner(target);
         
+        
         Long timestamp = session.getTimestamp();                
                
         Boolean isImage = (((target.toLowerCase().endsWith(".png")||referer.toLowerCase().endsWith(".png") ||referer.toLowerCase().endsWith(".jpg") ||
@@ -66,8 +67,9 @@ public class SessionHandlerKeepAll implements SessionHandler{
         }
         
 
- 
+        String btarget = "notInitialized";
         if (discardParameters){
+            btarget = target;
             referer = MiscUtil.discardParamaters(referer);
             target = MiscUtil.discardParamaters(target);
         }
@@ -97,6 +99,13 @@ public class SessionHandlerKeepAll implements SessionHandler{
             trans.setTransactionId(session.getAccessLog().getTransactionId());
 
             //----------------------------------------------------------------
+            if (referer.contains(";") || target.contains(";")){
+                System.out.println("something went seriously wrong with cleaning parameters");
+                System.out.println(btarget);
+                target = MiscUtil.discardParamaters(target);
+                
+            }
+            
             trans.setRefererID(uID.pageVectorizer(referer));
             trans.setTargetID(uID.pageVectorizer(target));
             //----------------------------------------------------------------

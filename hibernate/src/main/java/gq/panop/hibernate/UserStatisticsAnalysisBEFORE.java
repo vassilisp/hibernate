@@ -283,27 +283,47 @@ public class UserStatisticsAnalysisBEFORE {
         variance = variance/userStatistics.size();
         std = Math.sqrt(variance);
         
-        Integer range = (int) (X*std);
-        Integer lowLimit = (int)(mean - (range/1.5));
-        Integer highLimit = (int)(mean + (range*1.5));
-        List<String> usersInRange = new ArrayList<String>();
-        for (Entry<String, UserStatistics> tmp :userStatistics.entrySet()){
-            Double a = tmp.getValue().getMeanTransitionsPerClientId().get("mean");
-            Double b = tmp.getValue().getMeanTransitionsPerClientId().get("std");
+        List<String> usersInRange = null;
+        Boolean exit = false;
+        while(!exit){
+            Integer range = (int) (X*std);
+            Integer lowLimit = (int)(mean - (range/1.5));
+            Integer highLimit = (int)(mean + (range*1.5));
+            usersInRange = new ArrayList<String>();
+            for (Entry<String, UserStatistics> tmp :userStatistics.entrySet()){
+                Double a = tmp.getValue().getMeanTransitionsPerClientId().get("mean");
+                Double b = tmp.getValue().getMeanTransitionsPerClientId().get("std");
+                
+                Boolean condition1_intoLowRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")>lowLimit);
+                Boolean condition2_intoHighRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")<highLimit);
+                
+                Boolean condition3_defineMinimumDays = (tmp.getValue().getNumberOfActiveDays()>(meanNofActiveDays-STDofActiveDays));
+                
+                if ((condition1_intoLowRange && condition2_intoHighRange) && condition3_defineMinimumDays){
+                    usersInRange.add(tmp.getKey());
+                }
+            }
             
-            Boolean condition1_intoLowRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")>lowLimit);
-            Boolean condition2_intoHighRange = (tmp.getValue().getMeanTransitionsPerClientId().get("mean")<highLimit);
-            
-            Boolean condition3_defineMinimumDays = (tmp.getValue().getNumberOfActiveDays()>(meanNofActiveDays-STDofActiveDays));
-            
-            if ((condition1_intoLowRange && condition2_intoHighRange) && condition3_defineMinimumDays){
-                usersInRange.add(tmp.getKey());
+            if (N+(0.3*N)>usersInRange.size()){
+                System.out.println("Not enough users that satisfy the STD times criteria are found");
+                System.out.println("Users that satisfy the criteria: " + Integer.toString(usersInRange.size()));
+                System.out.println("Requested Users: " + Integer.toString(N));
+                //System.out.println("EXITING"); System.exit(99);
+                
+                X += 0.01;
+                System.out.println("Increasing STD range to acquire the requested users/ X: " + Double.toString(X));
+            }else{
+                
+                System.out.println("Selected " + Integer.toString(N) + " users out of " + Integer.toString(usersInRange.size()));
+                System.out.println("FINAL VALUE OF X: " + Double.toString(X));
+                exit = true;
             }
         }
         
         Random rnd = new Random();
-        
         System.out.println(" transitions, activeDays,avgPerDay, meanPerCid, stdPCid");
+        
+        
         
         List<String> result = new ArrayList<String>();
         for(int c=0; c<N; c++){
@@ -366,6 +386,15 @@ public class UserStatisticsAnalysisBEFORE {
         Random rnd = new Random();
         
         Integer Ni = N;
+        
+        if (N>usersInRange.size()){
+            System.out.println("Not enough users that satisfy the STD times criteria are found");
+            System.out.println("Users that satisfy the criteria: " + Integer.toString(usersInRange.size()));
+            System.out.println("Requested Users: " + Integer.toString(N));
+            System.out.println("EXITING");
+            System.exit(99);
+        }
+        
         System.out.println(" transitions, activeDays,avgPerDay, meanPerCid, stdPCid");
         ArrayList<String> result = new ArrayList<String>();
         for(int c=0; c<Ni; c++){
@@ -388,7 +417,7 @@ public class UserStatisticsAnalysisBEFORE {
             System.out.println(userSelected);
             
             String a = usersInRange.remove(index.intValue());
-            
+            System.out.println(usersInRange.size());
 
             result.add(userSelected);
             

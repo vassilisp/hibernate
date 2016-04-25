@@ -58,7 +58,7 @@ public class App
         
         List<String>requestedUserIds = new ArrayList<String>();
         requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimesSTD(50, 0.9);
-        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimeSTD_clientId(15, 0.3);
+        requestedUserIds = usaTotalLog.returnNRandomUsersAroundXtimeSTD_clientId(20, 0.3);
         
         SessionTraversal st = new SessionTraversal(null);
 
@@ -78,9 +78,7 @@ public class App
         
         //Second traversal with log clearing - the default sessionhandler of the session traversal
         SessionTraversal st2 = new SessionTraversal(null);
-        
         st2.setupRequestedUserIds(requestedUserIds);
-        
         st2.start();
         
         

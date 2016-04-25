@@ -13,6 +13,7 @@ public class MiscUtil {
     static {
         separators.add("?");
         separators.add(";");
+        separators.add(":");
     }
     public static String custom_Parser(String URI, Integer numberOfTokens){
         
@@ -65,9 +66,13 @@ public class MiscUtil {
         
         for (String sep:separators){
             if(url.indexOf(sep)>0){
+                int count = url.length() - url.replace(sep, "").length();
+                if (count>1 && sep.equals(";")){
+                    System.out.println("we got something interesting");
+                }
                 url = url.substring(0, url.indexOf(sep));
-                break;
             }
+
         }
         
         return url;
